@@ -1,0 +1,114 @@
+plugin:
+  name: custom-data-type-dante
+  version: 1.0
+  server:
+    api-version:
+      require: 1
+  webfrontend:
+    url: custom-data-type-dante.js
+    l10n: l10n/
+custom_types:
+  dante:
+    elasticsearch:
+      mapping:
+        type: object
+        properties:
+          conceptName:
+            type: string
+            index: no
+            fields:
+              exact:
+                type: string
+                term_vector: with_positions_offsets
+                analyzer: ez_exact_analyzer
+              folded:
+                type: string
+                term_vector: with_positions_offsets
+                index_analyzer: ez_text_folded_analyzer
+              fulltext:
+                type: string
+                term_vector: with_positions_offsets
+                index_analyzer: ez_text_fulltext_index_analyzer
+                search_analyzer: ez_text_fulltext_search_analyzer
+              phrase:
+                type: string
+                term_vector: with_positions_offsets
+                index_analyzer: ez_text_phrase_index_analyzer
+                search_analyzer: ez_text_fulltext_search_analyzer
+              sort:
+                type: string
+                term_vector: with_positions_offsets
+                index_analyzer: sort_de-DE
+              suggest:
+                type: string
+                term_vector: with_positions_offsets
+                index_analyzer: ez_text_suggest_analyzer
+              token:
+                type: string
+                term_vector: with_positions_offsets
+                analyzer: ez_text_token_analyzer
+          conceptURI:
+            type: string
+            index: no
+            fields:
+              exact:
+                type: string
+                term_vector: with_positions_offsets
+                analyzer: ez_exact_analyzer
+              folded:
+                type: string
+                term_vector: with_positions_offsets
+                index_analyzer: ez_text_folded_analyzer
+              fulltext:
+                type: string
+                term_vector: with_positions_offsets
+                index_analyzer: ez_text_fulltext_index_analyzer
+                search_analyzer: ez_text_fulltext_search_analyzer
+              phrase:
+                type: string
+                term_vector: with_positions_offsets
+                index_analyzer: ez_text_phrase_index_analyzer
+                search_analyzer: ez_text_fulltext_search_analyzer
+              sort:
+                type: string
+                term_vector: with_positions_offsets
+                index_analyzer: sort_de-DE
+              suggest:
+                type: string
+                term_vector: with_positions_offsets
+                index_analyzer: ez_text_suggest_analyzer
+              token:
+                type: string
+                term_vector: with_positions_offsets
+                analyzer: ez_text_token_analyzer
+    config:
+      schema:
+        - name: vocabulary_name
+          parameters:
+            value:
+              type: text
+      mask:
+        - name: show_infopopup
+          parameters:
+            value:
+              type: bool
+        - name: use_inline
+          parameters:
+            value:
+              type: bool
+        - name: hide_result_info
+          parameters:
+            value:
+              type: bool
+        - name: use_cache
+          parameters:
+            value:
+              type: bool
+        - name: default_concept_uuid
+          parameters:
+            value:
+              type: text
+        - name: default_concept_name
+          parameters:
+            value:
+              type: text
