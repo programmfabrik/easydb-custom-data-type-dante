@@ -1,5 +1,9 @@
 class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
+  #hasUserData: (data) ->
+    #console.debug(data)
+    #super(data)
+
   #######################################################################
   # return name of plugin
   getCustomDataTypeName: ->
@@ -52,7 +56,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   __renderEditorInputInline: (data, cdata) ->
         fields = []
         select = {
-            type: Select
+            type: CUI.Select
             undo_and_changed_support: false
             empty_text: "Einträge werden geladen .."
             options: [
@@ -130,7 +134,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         if preview
             fields.push(preview)
 
-        cdata_form = new Form
+        cdata_form = new CUI.Form
                 data: cdata
                 onDataChanged: =>
                         element = cdata_form.getFieldsByName("dante_InlineSelect")[0]
@@ -140,7 +144,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                         if preview
                             preview.replace(@__renderButtonByData(cdata))
 
-                        Events.trigger
+                        CUI.Events.trigger
                                 node: element
                                 type: "editor-changed"
                 fields: fields
@@ -152,22 +156,27 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
 
   #######################################################################
-  # read info from dante-terminology
+  # show tooltip with loader and then additional info
   __getAdditionalTooltipInfo: (uri, tooltip, extendedInfo_xhr) ->
+    that = @
+
     # extract danteID from uri
     danteID = uri
     danteID = danteID.split "/"
     danteID = danteID.pop()
-    # download infos
+
+    # abort eventually running request
     if extendedInfo_xhr.xhr != undefined
-      # abort eventually running request
       extendedInfo_xhr.xhr.abort()
-    # start new request
-    extendedInfo_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//uri.gbv.de/terminology/dante/' + danteID + '?format=json')
+
+    # start new request to DANTE-API
+    extendedInfo_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + location.protocol + '//uri.gbv.de/terminology/dante/' + danteID + '&format=json&properties=+ancestors,notation,scopeNote,definition,identifier,example,location&cache=1')
     extendedInfo_xhr.xhr.start()
     .done((data, status, statusText) ->
-      htmlContent = '<span style="font-weight: bold">Informationen über den Eintrag</span>'
-      tooltip.DOM.html(htmlContent)
+      htmlContent = that.getJSKOSPreview(data)
+      console.log tooltip
+      console.log tooltip.DOM
+      tooltip.DOM.innerHTML = htmlContent
       tooltip.autoSize()
     )
     .fail (data, status, statusText) ->
@@ -238,7 +247,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                       # if enabled in mask-config
                       if that.getCustomMaskSettings().show_infopopup?.value
                         that.__getAdditionalTooltipInfo(data[3][key], tooltip, extendedInfo_xhr)
-                        new Label(icon: "spinner", text: "lade Informationen")
+                        new CUI.Label(icon: "spinner", text: "lade Informationen")
                 menu_items.push item
 
             # set new items to menu
@@ -285,7 +294,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   __getEditorFields: (cdata) ->
     fields = [
       {
-        type: Select
+        type: CUI.Select
         class: "commonPlugin_Select"
         undo_and_changed_support: false
         form:
@@ -311,7 +320,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         name: 'countOfSuggestions'
       }
       {
-        type: Input
+        type: CUI.Input
         class: "commonPlugin_Input"
         undo_and_changed_support: false
         form:
@@ -322,19 +331,19 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
       {
         form:
           label: "Gewählter Eintrag"
-        type: Output
+        type: CUI.Output
         name: "conceptName"
         data: {conceptName: cdata.conceptName}
       }
       {
         form:
           label: "Verknüpfte URI"
-        type: FormButton
+        type: CUI.FormButton
         name: "conceptURI"
-        icon: new Icon(class: "fa-lightbulb-o")
+        icon: new CUI.Icon(class: "fa-external-link")
         text: cdata.conceptURI
         onClick: (evt,button) =>
-          window.open cdata.conceptURI, "_blank"
+          window.open 'https://uri.gbv.de/terminology/?uri=' + cdata.conceptURI, "_blank"
         onRender : (_this) =>
           if cdata.conceptURI == ''
             _this.hide()
@@ -347,32 +356,34 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   #######################################################################
   # renders the "result" in original form (outside popover)
   __renderButtonByData: (cdata) ->
+
+    that = @
     # when status is empty or invalid --> message
 
     switch @getDataStatus(cdata)
       when "empty"
-        return new EmptyLabel(text: $$("custom.data.type.dante.edit.no_dante")).DOM
+        return new CUI.EmptyLabel(text: $$("custom.data.type.dante.edit.no_dante")).DOM
       when "invalid"
-        return new EmptyLabel(text: $$("custom.data.type.dante.edit.no_valid_dante")).DOM
+        return new CUI.EmptyLabel(text: $$("custom.data.type.dante.edit.no_valid_dante")).DOM
+
+    extendedInfo_xhr = { "xhr" : undefined }
 
     # output Button with Name of picked dante-Entry and URI
-    new ButtonHref
+    new CUI.ButtonHref
       name: "outputButtonHref"
-      appearance: "flat"
-      href: cdata.conceptURI
+      appearance: "link"
+      href: 'https://uri.gbv.de/terminology/?uri=' + cdata.conceptURI
       target: "_blank"
-      icon_left: new Icon(class: "fa-commenting-o")
+      icon_left: new CUI.Icon(class: "fa-commenting-o")
       tooltip:
         markdown: true
-        placement: 'n'
-        content: () ->
+        placement: 'nw'
+        content: (tooltip) ->
           uri = cdata.conceptURI
-          danteUUID = uri.split('/')
-          danteUUID = danteUUID.pop()
           # get jskos-details-data
-          # ...
-          # ...
-          uri
+          that.__getAdditionalTooltipInfo(uri, tooltip, extendedInfo_xhr)
+          # loader, unteil details are xhred
+          new CUI.Label(icon: "spinner", text: "lade Informationen")
       text: cdata.conceptName
     .DOM
 
@@ -381,8 +392,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   # zeige die gewählten Optionen im Datenmodell unter dem Button an
   getCustomDataOptionsInDatamodelInfo: (custom_settings) ->
     tags = []
-
-    console.log custom_settings
 
     if custom_settings.vocabulary_name?.value
       tags.push "DANTE-Vok: " + custom_settings.vocabulary_name.value
