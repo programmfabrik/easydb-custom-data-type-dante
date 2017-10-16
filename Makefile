@@ -15,7 +15,8 @@ INSTALL_FILES = \
 	CustomDataTypeDante.config.yml
 
 COFFEE_FILES = ../easydb-library/src/commons.coffee \
-	src/webfrontend/CustomDataTypeDante.coffee
+	src/webfrontend/CustomDataTypeDante.coffee \
+	src/webfrontend/CustomDataTypeDanteParseJSKOS.coffee
 
 all: build
 
