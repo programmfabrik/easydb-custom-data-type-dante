@@ -117,11 +117,21 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
             # if cdata is already set, choose correspondending option from select
             if cdata?.conceptURI != ''
-                cdata_form.getFieldsByName("dante_InlineSelect")[0].opts.options
-                cdata_form.getFieldsByName("dante_InlineSelect")[0].setValue(cdata.conceptURI)
-                cdata_form.getFieldsByName("dante_InlineSelect")[0].displayValue()
-                cdata_form.getFieldsByName("dante_InlineSelect")[0].setText(cdata.conceptName)
-                cdata_form.getFieldsByName("dante_InlineSelect")[0].getValue()
+                # read given options
+                givenOpts = cdata_form.getFieldsByName("dante_InlineSelect")[0].opts.options
+                # uuid of already saved entry
+                givenUUID = cdata?.conceptURI.split('/')
+                givenUUID = givenUUID.pop()
+                for givenOpt in givenOpts
+                  if givenOpt.value != null
+                    testUUID = givenOpt.value.split('/')
+                    testUUID = testUUID.pop()
+                    if testUUID == givenUUID
+                      cdata_form.getFieldsByName("dante_InlineSelect")[0].opts.options
+                      cdata_form.getFieldsByName("dante_InlineSelect")[0].setValue(givenOpt.value)
+                      cdata_form.getFieldsByName("dante_InlineSelect")[0].displayValue()
+                      cdata_form.getFieldsByName("dante_InlineSelect")[0].setText(givenOpt.text)
+                      cdata_form.getFieldsByName("dante_InlineSelect")[0].getValue()
         )
 
         # generate preview-button
