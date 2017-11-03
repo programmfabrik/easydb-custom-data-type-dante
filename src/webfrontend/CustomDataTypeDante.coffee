@@ -1,9 +1,5 @@
 class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
-  #hasUserData: (data) ->
-    #console.debug(data)
-    #super(data)
-
   #######################################################################
   # return name of plugin
   getCustomDataTypeName: ->
@@ -189,8 +185,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
       tooltip.DOM.innerHTML = htmlContent
       tooltip.autoSize()
     )
-    .fail (data, status, statusText) ->
-        console.debug 'FAIL', extendedInfo_xhr.xhr.getXHR(), extendedInfo_xhr.xhr.getResponseHeaders()
 
     return
 
@@ -222,8 +216,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
             cache = '&cache=1'
         searchsuggest_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/suggest?search=' + dante_searchstring + '&danteuris&voc=' + that.getUsedVocabularyName() + '&limit=' + dante_countSuggestions + cache)
         searchsuggest_xhr.xhr.start().done((data, status, statusText) ->
-
-            console.debug 'OK', searchsuggest_xhr.xhr.getXHR(), searchsuggest_xhr.xhr.getResponseHeaders()
 
             extendedInfo_xhr = { "xhr" : undefined }
 
@@ -277,8 +269,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
             suggest_Menu.show()
 
         )
-        .fail (data, status, statusText) ->
-            console.debug 'FAIL', searchsuggest_xhr.getXHR(), searchsuggest_xhr.getResponseHeaders()
     ), delayMillisseconds
 
 
