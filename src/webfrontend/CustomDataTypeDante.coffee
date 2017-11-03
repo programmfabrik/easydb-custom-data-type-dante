@@ -190,7 +190,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
       tooltip.autoSize()
     )
     .fail (data, status, statusText) ->
-        CUI.debug 'FAIL', extendedInfo_xhr.xhr.getXHR(), extendedInfo_xhr.xhr.getResponseHeaders()
+        console.debug 'FAIL', extendedInfo_xhr.xhr.getXHR(), extendedInfo_xhr.xhr.getResponseHeaders()
 
     return
 
@@ -223,7 +223,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         searchsuggest_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/suggest?search=' + dante_searchstring + '&danteuris&voc=' + that.getUsedVocabularyName() + '&limit=' + dante_countSuggestions + cache)
         searchsuggest_xhr.xhr.start().done((data, status, statusText) ->
 
-            CUI.debug 'OK', searchsuggest_xhr.xhr.getXHR(), searchsuggest_xhr.xhr.getResponseHeaders()
+            console.debug 'OK', searchsuggest_xhr.xhr.getXHR(), searchsuggest_xhr.xhr.getResponseHeaders()
 
             extendedInfo_xhr = { "xhr" : undefined }
 
@@ -232,21 +232,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
             # the actual Featureclass
             for suggestion, key in data[1]
               do(key) ->
-                # the actual Featureclass...
-                #aktType = data[2][key]
-                #lastType = ''
-                #if key > 0
-                #  lastType = data[2][key-1]
-                #if aktType != lastType
-                #  item =
-                #    divider: true
-                #  menu_items.push item
-                #  item =
-                #    label: aktType
-                #  menu_items.push item
-                #  item =
-                #    divider: true
-                #  menu_items.push item
                 item =
                   text: suggestion
                   value: data[3][key]
@@ -292,8 +277,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
             suggest_Menu.show()
 
         )
-        #.fail (data, status, statusText) ->
-            #CUI.debug 'FAIL', searchsuggest_xhr.getXHR(), searchsuggest_xhr.getResponseHeaders()
+        .fail (data, status, statusText) ->
+            console.debug 'FAIL', searchsuggest_xhr.getXHR(), searchsuggest_xhr.getResponseHeaders()
     ), delayMillisseconds
 
 
