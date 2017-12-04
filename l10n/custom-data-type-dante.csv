@@ -29,3 +29,4 @@
 "custom.data.type.dante.config.parameter.schema.vocabulary_name.value.label","DANTE-Vokabular-ID (aus https://api.dante.gbv.de/voc)",
 "custom.data.type.dante.config.parameter.mask.default_concept_uuid.value.label", "Standard-UUID",
 "custom.data.type.dante.config.parameter.mask.default_concept_name.value.label", "Standard-Name",
+"custom.data.type.dante.setting.schema.no_choosen_vocabulary", Kein DANTE-Vokabular hinterlegt,
