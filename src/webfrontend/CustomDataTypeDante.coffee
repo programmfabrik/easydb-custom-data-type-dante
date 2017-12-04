@@ -379,9 +379,9 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     tags = []
 
     if custom_settings.vocabulary_name?.value
-      tags.push "DANTE-Vok: " + custom_settings.vocabulary_name.value
+      tags.push $$("custom.data.type.dante.name") + ': ' + custom_settings.vocabulary_name.value
     else
-      tags.push "Kein DANTE-Vokabular hinterlegt"
+      tags.push $$("custom.data.type.dante.setting.schema.no_choosen_vocabulary")
 
     tags
 
