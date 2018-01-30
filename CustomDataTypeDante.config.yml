@@ -101,16 +101,16 @@ custom_types:
           parameters:
             value:
               type: text
+        - name: mapbox_access_token
+          parameters:
+            value:
+              type: text
       mask:
-        - name: show_infopopup
+        - name: use_tree_view
           parameters:
             value:
               type: bool
         - name: use_inline
-          parameters:
-            value:
-              type: bool
-        - name: hide_result_info
           parameters:
             value:
               type: bool
