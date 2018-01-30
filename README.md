@@ -10,7 +10,7 @@ As defined in `CustomDataTypeDante.config.yml` this datatype can be configured:
 
 ### Schema options
 
-* which "vocabulary_name" to use. List of Vocabularys [in DANTE](https://dante.gbv.de/search?ot=vocabulary) or [as JSKOS via API](https://api.dante.gbv.de/voc)
+* which "vocabulary_name" to use. List of Vocabularys [in DANTE](https://dante.gbv.de/search?ot=vocabulary) or [as JSKOS via API](https://api.dante.gbv.de/voc) or [uri.gbv.de/terminology] (http://uri.gbv.de/terminology/)
 * which mapbox-access-token to use
 
 ### Mask options
