@@ -1,32 +1,57 @@
-"key","de-DE","en-US","it-IT","es-ES"
-"custom.data.type.dante.name","DANTE-Verknüpfung",
-"custom.data.type.dante.edit.button|icon","edit",
-"custom.data.type.dante.remove.button|icon","trash",
-"custom.data.type.dante.config.option.mask.editor_style.value.inline","Eingebettet",
-"custom.data.type.dante.setting.mask.editor_style","Editor-Stil",
-"custom.data.type.dante.config.option.mask.editor_style.value.popover","Popover",
-"custom.data.type.dante.modal.form.url.placeholder","DANTE-Verknüpfung",
-"custom.data.type.dante.modal.form.text.label","Text",
-"custom.data.type.dante.edit.modal.title|text","Mit Vokabulareintrag verknüpfen",
-"custom.data.type.dante.edit.no_valid_dante","Keine valide DANTE-Verknüpfung",
-"custom.data.type.dante.edit.no_dante","Keine DANTE-Verknüpfung gesetzt",
-"custom.data.type.dante.modal.form.text.count","Anzahl Vorschläge",
-"custom.data.type.dante.modal.form.text.searchbar","Suchbegriff eingeben",
-"custom.data.type.dante.modal.form.text.searchbar.placeholder"," tippen ... ",
-"custom.data.type.dante.modal.form.text.result.label","Gewählter Eintrag",
-"custom.data.type.dante.modal.form.text.result.placeholder","noch leer",
-"custom.data.type.dante.modal.form.text.uri.label","Zugehörige URI",
-"custom.data.type.dante.modal.form.text.uri.label.placeholder","noch leer",
-"custom.data.type.dante.url.tooltip","zu **%(name)s** springen",
-"custom.data.type.dante.config.parameter.mask.show_infopopup.value.label", "Infopop",
-"custom.data.type.dante.config.parameter.mask.show_infopopup.value.checkbox", "Infopop für Treffer in der Vorschlagsliste anzeigen?",
-"custom.data.type.dante.config.parameter.mask.use_inline.value.checkbox", "Wenig Treffer zu erwarten? Dropdown benutzen, statt Popup.",
-"custom.data.type.dante.config.parameter.mask.use_inline.value.label", "Dropdown",
-"custom.data.type.dante.config.parameter.mask.use_cache.value.checkbox", "Inhalte ändern sich selten? Cache nutzen.",
-"custom.data.type.dante.config.parameter.mask.use_cache.value.label", "Cache",
-"custom.data.type.dante.config.parameter.mask.hide_result_info.value.checkbox", "Anzeige des Ergebnisses verstecken (empfohlen bei Nutzung des Dropdowns!)",
-"custom.data.type.dante.config.parameter.mask.hide_result_info.value.label", "Ergebnis verstecken",
-"custom.data.type.dante.config.parameter.schema.vocabulary_name.value.label","DANTE-Vokabular-ID (aus https://api.dante.gbv.de/voc)",
-"custom.data.type.dante.config.parameter.mask.default_concept_uuid.value.label", "Standard-UUID",
-"custom.data.type.dante.config.parameter.mask.default_concept_name.value.label", "Standard-Name",
-"custom.data.type.dante.setting.schema.no_choosen_vocabulary", Kein DANTE-Vokabular hinterlegt,
+key,de-DE,en-US
+custom.data.type.dante.name,DANTE-Verknüpfung,DANTE-Link
+custom.data.type.dante.edit.button|icon,edit,edit
+custom.data.type.dante.remove.button|icon,trash,trash
+custom.data.type.dante.config.option.mask.editor_style.value.inline,Eingebettet,embedded
+custom.data.type.dante.setting.mask.editor_style,Editor-Stil,Editor-Style
+custom.data.type.dante.config.option.mask.editor_style.value.popover,Popover,Popover
+custom.data.type.dante.modal.form.url.placeholder,DANTE-Verknüpfung,DANTE-Link
+custom.data.type.dante.modal.form.text.label,Text,Text
+custom.data.type.dante.edit.modal.title|text,Mit Vokabulareintrag verknüpfen,Link with Vocabulary-Entry
+custom.data.type.dante.edit.no_valid_dante,Keine valide Datensatz-Verknüpfung,No valid Record-Link
+custom.data.type.dante.edit.no_dante,Keine Datensatz-Verknüpfung gesetzt,No Record-Link set
+custom.data.type.dante.modal.form.text.count,Anzahl Vorschläge,Count of suggestions
+custom.data.type.dante.modal.form.text.searchbar,Suchbegriff eingeben,Type searchterm
+custom.data.type.dante.modal.form.text.searchbar.placeholder, tippen ... ,type sth. ...
+custom.data.type.dante.modal.form.text.result.label,Gewählter Eintrag,Choosen entry
+custom.data.type.dante.modal.form.text.result.placeholder,noch leer,empty
+custom.data.type.dante.modal.form.text.uri.label,Zugehörige URI,Choosen URI
+custom.data.type.dante.modal.form.text.uri.label.placeholder,noch leer,empty
+custom.data.type.dante.modal.form.popup.suggest.nohit,Kein Treffer,No hit
+custom.data.type.dante.url.tooltip,zu **%(name)s** springen,jump to **%(name)s**
+custom.data.type.dante.config.parameter.mask.show_infopopup.value.label,Infopop,Infopopup
+custom.data.type.dante.config.parameter.mask.show_infopopup.value.checkbox,Infopop für Treffer in der Vorschlagsliste anzeigen?,Show infopopup in list?
+custom.data.type.dante.config.parameter.mask.use_inline.value.checkbox,Dropdown benutzen statt Popup.,Dropdown instead of popup
+custom.data.type.dante.config.parameter.mask.use_inline.value.label,Dropdown,Dropdown
+custom.data.type.dante.config.parameter.mask.use_cache.value.checkbox,Cache nutzen.,Use Cache
+custom.data.type.dante.config.parameter.mask.use_cache.value.label,Cache,Cache
+custom.data.type.dante.config.parameter.mask.hide_result_info.value.checkbox,Anzeige des Ergebnisses verstecken (empfohlen bei Nutzung des Dropdowns!),Hide results (when using dropdown)
+custom.data.type.dante.config.parameter.mask.hide_result_info.value.label,Ergebnis verstecken,Hide result
+custom.data.type.dante.config.parameter.schema.vocabulary_name.value.label,DANTE-Vokabular-ID (aus https://api.dante.gbv.de/voc),Name of vocabulary (see http://uri.gbv.de/terminology/)
+custom.data.type.dante.config.parameter.mask.default_concept_uuid.value.label,"Standard-UUID""",Standard-UUID
+custom.data.type.dante.config.parameter.mask.default_concept_name.value.label,"Standard-Name""",Standard-Name
+custom.data.type.dante.setting.schema.no_choosen_vocabulary,Kein DANTE-Vokabular hinterlegt,No DANTE-Vocabulary set
+custom.data.type.dante.config.parameter.mask.use_tree_view.value.checkbox,Baumansicht zum Navigieren,Treeview (only for Popup-Mode)
+custom.data.type.dante.config.parameter.mask.use_tree_view.value.label,Baumansicht,Use Treeview
+custom.data.type.dante.modal.form.popup.choose,Auswahl treffen,Choose record
+custom.data.type.dante.modal.form.popup.loadingstringtreeview,lade Baumansicht,loading treeview
+custom.data.type.dante.modal.form.popup.loadingstring,lade Informationen,loading information
+custom.data.type.dante.modal.form.popup.treeview.nopreflabel,ohne Begriff,without label
+custom.data.type.dante.modal.form.popup.treeviewsearch,Suchen,search
+custom.data.type.dante.modal.form.popup.add_choose,Eintrag übernehmen,choose record
+custom.data.type.dante.modal.form.popup.add_sitemap,Strukturbegriff,for structure only
+custom.data.type.dante.modal.form.popup.treeviewreset,Reset,reset
+custom.data.type.dante.modal.form.popup.jskospreview.nopreflabel,ohne Begriff,without label
+custom.data.type.dante.modal.form.popup.jskospreview.terms,Bezeichnungen,Terms
+custom.data.type.dante.modal.form.popup.jskospreview.altterms,Andere Bezeichnungen,Alternative terms
+custom.data.type.dante.modal.form.popup.jskospreview.keywords,Schlagwörter,Keywords
+custom.data.type.dante.modal.form.popup.jskospreview.notations,Notationen,Notations
+custom.data.type.dante.modal.form.popup.jskospreview.colors,Farben,Colors
+custom.data.type.dante.modal.form.popup.jskospreview.georef,Georeferenzierung,Georeferencing
+custom.data.type.dante.modal.form.popup.jskospreview.definition,Definition,Definition
+custom.data.type.dante.modal.form.popup.jskospreview.scopenote,Verwendungshinweis,ScopeNote
+custom.data.type.dante.modal.form.popup.jskospreview.example,Beispiel,Example
+custom.data.type.dante.modal.form.popup.jskospreview.depiction,Bilder,Depiction
+custom.data.type.dante.config.parameter.schema.mapbox_access_token.value.label,Mapbox-Access-Token (Kartenanzeige),Mapbox-Access-Token (display maps)
+custom.data.type.dante.modal.form.dropdown.loadingentries,Einträge werden geladen ..,loading entries ..
+custom.data.type.dante.modal.form.dropdown.choose,auswählen ..,choose ..
