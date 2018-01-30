@@ -11,14 +11,13 @@ As defined in `CustomDataTypeDante.config.yml` this datatype can be configured:
 ### Schema options
 
 * which "vocabulary_name" to use. List of Vocabularys [in DANTE](https://dante.gbv.de/search?ot=vocabulary) or [as JSKOS via API](https://api.dante.gbv.de/voc)
+* which mapbox-access-token to use
 
 ### Mask options
 
-* whether additional informationen is loaded if the mouse hovers a suggestion in the search result
+* whether to use as dropdown or as popup or popup with treeview
 * whether to use the cache
 * whether to use default values
-* whether to use plugin inline or as popup
-* whether to hide the uri
 
 ## sources
 
