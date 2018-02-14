@@ -349,7 +349,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     if that.getCustomMaskSettings().use_tree_view?.value == true
 
       style = CUI.dom.element("style")
-      style.innerHTML = ".dantePlugin_ResetButton { margin-left: 4px; } .dantePlugin_SearchButton { margin-left: 4px; } .dantePlugin_Treeview {border-bottom: 1px solid #efefef; padding: 10px 0px; max-height: 500px; overflow-y: auto;}"
+      style.innerHTML = ".commonPlugin_Input { max-width: 100%; } .commonPlugin_Input .cui-input { max-width: 50%; } .dantePlugin_ResetButton { margin-left: 4px; } .dantePlugin_SearchButton { margin-left: 4px; } .dantePlugin_Treeview {border-bottom: 1px solid #efefef; padding: 10px 0px; max-height: 500px; overflow-y: auto;}"
       document.head.appendChild(style)
 
       # do search-request for all the top-entrys of vocabulary
