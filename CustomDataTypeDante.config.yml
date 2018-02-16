@@ -1,5 +1,5 @@
 plugin:
-  name: custom-data-type-dante
+  name: easydb-custom-data-type-dante
   version: 1.0
   server:
     api-version:
