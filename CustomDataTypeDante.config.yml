@@ -1,5 +1,5 @@
 plugin:
-  name: easydb-custom-data-type-dante
+  name: custom-data-type-dante
   version: 1.0
   server:
     api-version:
@@ -74,12 +74,6 @@ custom_types:
                 term_vector: with_positions_offsets
                 analyzer: ez_text_fulltext_index_analyzer
                 search_analyzer: ez_text_fulltext_search_analyzer
-              phrase:
-                type: text
-                fielddata: true
-                term_vector: with_positions_offsets
-                analyzer: ez_text_phrase_index_analyzer
-                search_analyzer: ez_text_fulltext_search_analyzer
               sort:
                 type: text
                 fielddata: true
@@ -89,7 +83,7 @@ custom_types:
                 type: text
                 fielddata: true
                 term_vector: with_positions_offsets
-                analyzer: ez_text_suggest_analyzer
+                analyzer: ez_text_fulltext_index_analyzer
               token:
                 type: text
                 fielddata: true
