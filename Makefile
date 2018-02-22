@@ -9,10 +9,12 @@ INSTALL_FILES = \
 	$(WEB)/l10n/cultures.json \
 	$(WEB)/l10n/de-DE.json \
 	$(WEB)/l10n/en-US.json \
-	$(WEB)/l10n/es-ES.json \
-	$(WEB)/l10n/it-IT.json \
 	$(JS) \
 	CustomDataTypeDante.config.yml
+
+# XXX: missing languages, so the following files are not installable
+#	$(WEB)/l10n/es-ES.json \
+#	$(WEB)/l10n/it-IT.json \
 
 MAPBOX1 = src/external/geojson-extent.js
 MAPBOX2 = src/external/geo-viewport.js
