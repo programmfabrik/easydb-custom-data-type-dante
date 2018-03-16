@@ -1,6 +1,13 @@
 plugin:
   name: custom-data-type-dante
-  version: 1.0
+  version: 1.1
+  url: https://github.com/programmfabrik/easydb-custom-data-type-dante
+  displayname:
+    de-DE: DANTE-Verknüpfung
+    en-US: DANTE-Referencing
+  info:
+    de-DE: Stellt Verknüpfungen mit der Vokabualserver DANTE her.
+    en-US: Use for references to entities of DANTE-AuthorityFile-Server.
   server:
     api-version:
       require: 1
