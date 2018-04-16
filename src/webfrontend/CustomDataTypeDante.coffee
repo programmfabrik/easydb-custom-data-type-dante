@@ -1,6 +1,12 @@
 class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
   #######################################################################
+  # load  css
+  CUI.ready =>
+    cssLoader = new CUI.CSSLoader()
+    cssLoader.load(url: '/api/v1/plugin/static/extension/custom-data-type-dante/css/CustomDataTypeDante.css')
+
+  #######################################################################
   # return name of plugin
   getCustomDataTypeName: ->
     "custom:base.custom-data-type-dante.dante"
@@ -20,12 +26,126 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
       xreturn = 'gender'
     xreturn
 
+  # BACK TO LIBRARY!=!=!=!=!?!?!?!??!?
+  ########################################################################
+  # check if field is empty
+  isEmpty: (data, top_level_data, opts={}) ->
+      if opts?.mode == "expert"
+          console.log "f: isEmpty - expers"
+          console.log opts
+          console.log data
+          console.log @name()
+          console.log data[@name()]
+          console.log typeof data[@name()]
+          # is there any data?
+          if not CUI.util.isEmpty(data[@name()])
+            # is string from input-searchfield?
+            if typeof data[@name()] is 'string'
+              # check plain input in search
+              result = CUI.util.isEmpty(data[@name()]?.trim())
+              console.log result
+              return result
+            # is object?
+            if typeof data[@name()] is 'object'
+              result = CUI.util.isEmpty(data[@name()]?.conceptURI?.trim())
+              console.log result
+              return result
+          else
+            return true
+      if data[@name()]?.conceptURI
+          return false
+      else
+          return true
 
   #######################################################################
-  # handle editorinput
+  # update result in extended search
+  __updateExtendedSearch: (cdata, layout, search_token) ->
+    console.log "f: __updateExtendedSearch"
+    console.log search_token
+    search_token.opts.data.test_treeview = "test1"
+    #search_token.setSearchInput("TEEEST")
+    layout.replace(search_token.getInput().DOM, "center")
+
+  #######################################################################
+  # returns markup to display in expert search
+  renderSearchInput: (data, opts={}) ->
+    that = @
+    # if treeview?
+    if that.getCustomMaskSettings().use_tree_view?.value
+      console.warn("f renderSearchInput");
+      console.log(data);
+      console.warn("choose from treeview please");
+      console.log(data);
+      cdata = {
+            conceptName : ''
+            conceptURI : ''
+      }
+      # make searchfield
+      search_token = new SearchToken
+          column: @
+          data: data
+          fields: opts.fields
+      search_token.element.readOnly = true
+      search_token.element.placeholder = '<--'
+      #console.log search_token
+      #console.log search_token.getInput().DOM
+      # layout for extended search via tree
+      layout = new CUI.HorizontalLayout
+        left:
+          content:
+              new CUI.Buttonbar(
+                buttons: [
+                    new CUI.Button
+                        text: ""
+                        icon: 'edit'
+                        group: "groupA"
+
+                        onClick: (ev, btn) =>
+                          @showEditPopover(btn, cdata, layout, search_token)
+                          # alles in dieser Datei!
+                          # showEditPopover ruft dann "__updateResult" auf.
+                          # einen weiteren parameter an showEditPopover dran und dann
+                          # eben nicht "updateResult", sondern "updateExtendedSearch" aufrufen und
+                          # die Werte entsprechend irgendwie füllen
+
+                    new CUI.Button
+                        text: ""
+                        icon: 'trash'
+                        group: "groupA"
+                        onClick: (ev, btn) =>
+                          cdata = {
+                                conceptName : ''
+                                conceptURI : ''
+                          }
+                          data[@name()] = cdata
+                          # trigger form change
+                          @__updateResult(cdata, layout)
+                          CUI.Events.trigger
+                            node: @__layout
+                            type: "editor-changed"
+                          CUI.Events.trigger
+                            node: layout
+                            type: "editor-changed"
+                ]
+              )
+        center:
+            content:
+              search_token.getInput().DOM
+        right: {}
+        layout
+    # no treeview
+    else
+      search_token = new SearchToken
+          column: @
+          data: data
+          fields: opts.fields
+      search_token.getInput().DOM
+
+
+  #######################################################################
+  # render editorinputform
   renderEditorInput: (data, top_level_data, opts) ->
     #console.error @, data, top_level_data, opts, @name(), @fullName()
-
     if not data[@name()]
         cdata = {
             conceptName : ''
@@ -122,19 +242,31 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
             if cdata?.conceptURI != ''
                 # read given options
                 givenOpts = cdata_form.getFieldsByName("dante_InlineSelect")[0].opts.options
-                # uuid of already saved entry
-                givenUUID = cdata?.conceptURI.split('/')
-                givenUUID = givenUUID.pop()
-                for givenOpt in givenOpts
-                  if givenOpt.value != null
-                    testUUID = givenOpt.value.split('/')
-                    testUUID = testUUID.pop()
-                    if testUUID == givenUUID
-                      cdata_form.getFieldsByName("dante_InlineSelect")[0].opts.options
-                      cdata_form.getFieldsByName("dante_InlineSelect")[0].setValue(givenOpt.value)
-                      cdata_form.getFieldsByName("dante_InlineSelect")[0].displayValue()
-                      cdata_form.getFieldsByName("dante_InlineSelect")[0].setText(givenOpt.text)
-                      cdata_form.getFieldsByName("dante_InlineSelect")[0].getValue()
+                # is this a dante-uri or another "world"-uri?
+                if cdata.conceptURI.indexOf('uri.gbv.de/terminology') > 0
+                  # uuid of already saved entry
+                  givenUUID = cdata?.conceptURI.split('/')
+                  givenUUID = givenUUID.pop()
+                  for givenOpt in givenOpts
+                    if givenOpt.value != null
+                      testUUID = givenOpt.value.split('/')
+                      testUUID = testUUID.pop()
+                      if testUUID == givenUUID
+                        cdata_form.getFieldsByName("dante_InlineSelect")[0].opts.options
+                        cdata_form.getFieldsByName("dante_InlineSelect")[0].setValue(givenOpt.value)
+                        cdata_form.getFieldsByName("dante_InlineSelect")[0].displayValue()
+                        cdata_form.getFieldsByName("dante_InlineSelect")[0].setText(givenOpt.text)
+                        cdata_form.getFieldsByName("dante_InlineSelect")[0].getValue()
+                else
+                  for givenOpt in givenOpts
+                    if givenOpt.value != null
+                      if givenOpt.value == cdata?.conceptURI
+                        cdata_form.getFieldsByName("dante_InlineSelect")[0].opts.options
+                        cdata_form.getFieldsByName("dante_InlineSelect")[0].setValue(givenOpt.value)
+                        cdata_form.getFieldsByName("dante_InlineSelect")[0].displayValue()
+                        cdata_form.getFieldsByName("dante_InlineSelect")[0].setText(givenOpt.text)
+                        cdata_form.getFieldsByName("dante_InlineSelect")[0].getValue()                
+                  
         )
 
         cdata_form = new CUI.Form
@@ -287,24 +419,12 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
 
   #######################################################################
-  # set visibility of popover-form-result-fields
-
-  # eh, this is very dirty...
+  # set visibility of popover-form-result-fields (hidden, if empty (onInit-check))
   __setResultFieldVisibility: (elem, cdata, cdata_form) ->
     if elem.getName() == 'conceptName' || elem.getName() == 'conceptURI'
       if cdata.conceptURI != '' && cdata.conceptName != ''
-
-        if cdata_form.DOM.children[0].children[0].children[1].getElementsByClassName("cui-data-field-hidden").length > 0
-          cdata_form.DOM.children[0].children[0].children[1].getElementsByClassName("cui-data-field-hidden")[0].classList.remove("cui-data-field-hidden")
-
-        if cdata_form.DOM.children[0].children[0].children[2].getElementsByClassName("cui-data-field-hidden").length > 0
-          cdata_form.DOM.children[0].children[0].children[2].getElementsByClassName("cui-data-field-hidden")[0].classList.remove("cui-data-field-hidden")
-
-        cdata_form.DOM.children[0].children[0].children[1].style.display = "table-row"
-        cdata_form.DOM.children[0].children[0].children[2].style.display = "table-row"
-        if cdata_form.DOM.children[0].children[0].children[3]
-          cdata_form.DOM.children[0].children[0].children[3].style.display = "table-row"
-
+        elem.show()
+        cdata_form.reload()
     @
 
 
@@ -313,7 +433,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   # https://github.com/programmfabrik/coffeescript-ui-demo/blob/master/src/demos/ListView/ListViewDemo.coffee
   # https://github.com/programmfabrik/coffeescript-ui-demo/blob/master/src/demos/ListView/ListViewTreeDemo.coffee
   # https://programmfabrik.github.io/coffeescript-ui-demo/public/#ListView
-  showEditPopover: (btn, cdata, layout) ->
+  showEditPopover: (btn, cdata, layout, search_token) ->
     that = @
 
     that.resettedPopup = false;
@@ -333,7 +453,10 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
       data: cdata
       fields: @__getEditorFields(cdata)
       onDataChanged: (data, elem) =>
-        @__updateResult(cdata, layout)
+        if !search_token
+          @__updateResult(cdata, layout)
+        else
+          @__updateExtendedSearch(cdata, layout, search_token)
         @__setEditorFieldStatus(cdata, layout)
         if elem.opts.name == 'searchbarInput'
           @__updateSuggestionsMenu(cdata, cdata_form, suggest_Menu, searchsuggest_xhr)
@@ -345,7 +468,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         element : cdata_form.getFieldsByName("searchbarInput")[0]
         use_element_width_as_min_width: true
 
-    # treeview
+    # treeview?
     if that.getCustomMaskSettings().use_tree_view?.value == true
 
       style = CUI.dom.element("style")
@@ -643,12 +766,18 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
     # output Button with Name of picked dante-Entry and URI
     encodedURI = encodeURIComponent(cdata.conceptURI)
+    test = new CUI.ButtonHref
+    console.log test
+
     new CUI.ButtonHref
       name: "outputButtonHref"
       appearance: "link"
+      size: "normal"
       href: 'https://uri.gbv.de/terminology/?uri=' + encodedURI
       target: "_blank"
       icon_left: new CUI.Icon(class: "fa-commenting-o")
+      #icon_right: new CUI.Icon(class: "fa-external-link-square-alt")
+      class: "cdt_dante_smallMarginTop"
       tooltip:
         markdown: true
         placement: 'nw'
