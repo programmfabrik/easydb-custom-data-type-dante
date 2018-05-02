@@ -3,8 +3,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   #######################################################################
   # load  css
   CUI.ready =>
-    cssLoader = new CUI.CSSLoader()
-    cssLoader.load(url: '/api/v1/plugin/static/extension/custom-data-type-dante/css/CustomDataTypeDante.css')
+    #cssLoader = new CUI.CSSLoader()
+    #cssLoader.load(url: '/api/v1/plugin/static/extension/custom-data-type-dante/css/CustomDataTypeDante.css')
 
   #######################################################################
   # return name of plugin
@@ -176,98 +176,66 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
             type: CUI.Select
             undo_and_changed_support: false
             empty_text: $$('custom.data.type.dante.modal.form.dropdown.loadingentries')
-            options: [
-              (
-                  text: $$('custom.data.type.dante.modal.form.dropdown.loadingentries')
-                  value: undefined
-              )
-            ]
+            # read select-items from dante-api
+            options: (thisSelect) =>
+                  dfr = new CUI.Deferred()
+                  values = []
+
+                  # cache on?
+                  cache = '&cache=0'
+                  if @getCustomMaskSettings().use_cache?.value
+                      cache = '&cache=1'
+
+                  # language
+                  desiredLanguage = ez5.loca.getLanguage()
+                  desiredLanguage = desiredLanguage.split('-')
+                  desiredLanguage = desiredLanguage[0]
+
+                  # start new request
+                  searchsuggest_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/suggest?search=&voc=' + @getUsedVocabularyName() + '&language=' + desiredLanguage + '&limit=1000' + cache)
+                  searchsuggest_xhr.start().done((data, status, statusText) ->
+                      # read options for select
+                      select_items = []
+                      item = (
+                        text: $$('custom.data.type.dante.modal.form.dropdown.choose')
+                        value: null
+                      )
+                      select_items.push item
+                      for suggestion, key in data[1]
+                          item = (
+                            text: suggestion
+                            value: data[3][key]
+                          )
+                          select_items.push item
+
+                      # if cdata is already set, choose correspondending option from select
+                      if cdata?.conceptURI != ''
+                          # is this a dante-uri or another "world"-uri?
+                          if cdata.conceptURI?.indexOf('uri.gbv.de/terminology') > 0
+                            # uuid of already saved entry
+                            givenUUID = cdata?.conceptURI.split('/')
+                            givenUUID = givenUUID.pop()
+                            for givenOpt in select_items
+                              if givenOpt.value != null
+                                testUUID = givenOpt.value.split('/')
+                                testUUID = testUUID.pop()
+                                if testUUID == givenUUID
+                                  thisSelect.setValue(givenOpt.value)
+                                  thisSelect.setText(givenOpt.text)
+                          else
+                            for givenOpt in select_items
+                              if givenOpt.value != null
+                                if givenOpt.value == cdata?.conceptURI
+                                  thisSelect.setValue(givenOpt.value)
+                                  thisSelect.setText(givenOpt.text)
+                      thisSelect.enable()
+                      dfr.resolve(select_items)
+                  )
+                  dfr.promise()
+
             name: 'dante_InlineSelect'
         }
         fields.push select
-
-        ##################################################################
-        # read entries from suggest and place as select / dropdown
-
-        # start new request
-
-        # cache on?
-        cache = '&cache=0'
-        if @getCustomMaskSettings().use_cache?.value
-            cache = '&cache=1'
-
-        # language
-        desiredLanguage = ez5.loca.getLanguage()
-        desiredLanguage = desiredLanguage.split('-')
-        desiredLanguage = desiredLanguage[0]
-
-        searchsuggest_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/suggest?search=&voc=' + @getUsedVocabularyName() + '&language=' + desiredLanguage + '&limit=1000' + cache)
-        searchsuggest_xhr.start().done((data, status, statusText) ->
-            # read options for select
-            select_items = []
-            item = (
-              text: $$('custom.data.type.dante.modal.form.dropdown.choose')
-              value: null
-            )
-            select_items.push item
-            for suggestion, key in data[1]
-                item = (
-                  text: suggestion
-                  value: data[3][key]
-                )
-                select_items.push item
-
-            # if no hits set "empty" message to menu
-            if select_items.length == 0
-              itemList =
-                items: [
-                  text: "kein Treffer, Administrator kontaktieren!"
-                  value: null
-                ]
-
-            # if xhr is done, fill existing empty select with the values
-            cdata_form.getFieldsByName("dante_InlineSelect")[0]
-            cdata_form.getFieldsByName("dante_InlineSelect")[0].opts.options = select_items
-            cdata_form.getFieldsByName("dante_InlineSelect")[0]._options = select_items
-            cdata_form.getFieldsByName("dante_InlineSelect")[0]._empty_text = $$('custom.data.type.dante.modal.form.dropdown.choose')
-            cdata_form.getFieldsByName("dante_InlineSelect")[0].setValue(null)
-
-            cdata_form.getFieldsByName("dante_InlineSelect")[0].reset()
-            cdata_form.getFieldsByName("dante_InlineSelect")[0].reload()
-            cdata_form.getFieldsByName("dante_InlineSelect")[0].displayValue()
-
-            cdata_form.getFieldsByName("dante_InlineSelect")[0].enable()
-
-            # if cdata is already set, choose correspondending option from select
-            if cdata?.conceptURI != ''
-                # read given options
-                givenOpts = cdata_form.getFieldsByName("dante_InlineSelect")[0].opts.options
-                # is this a dante-uri or another "world"-uri?
-                if cdata.conceptURI.indexOf('uri.gbv.de/terminology') > 0
-                  # uuid of already saved entry
-                  givenUUID = cdata?.conceptURI.split('/')
-                  givenUUID = givenUUID.pop()
-                  for givenOpt in givenOpts
-                    if givenOpt.value != null
-                      testUUID = givenOpt.value.split('/')
-                      testUUID = testUUID.pop()
-                      if testUUID == givenUUID
-                        cdata_form.getFieldsByName("dante_InlineSelect")[0].opts.options
-                        cdata_form.getFieldsByName("dante_InlineSelect")[0].setValue(givenOpt.value)
-                        cdata_form.getFieldsByName("dante_InlineSelect")[0].displayValue()
-                        cdata_form.getFieldsByName("dante_InlineSelect")[0].setText(givenOpt.text)
-                        cdata_form.getFieldsByName("dante_InlineSelect")[0].getValue()
-                else
-                  for givenOpt in givenOpts
-                    if givenOpt.value != null
-                      if givenOpt.value == cdata?.conceptURI
-                        cdata_form.getFieldsByName("dante_InlineSelect")[0].opts.options
-                        cdata_form.getFieldsByName("dante_InlineSelect")[0].setValue(givenOpt.value)
-                        cdata_form.getFieldsByName("dante_InlineSelect")[0].displayValue()
-                        cdata_form.getFieldsByName("dante_InlineSelect")[0].setText(givenOpt.text)
-                        cdata_form.getFieldsByName("dante_InlineSelect")[0].getValue()                
-                  
-        )
 
         cdata_form = new CUI.Form
                 data: cdata
