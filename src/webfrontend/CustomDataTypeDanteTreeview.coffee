@@ -356,13 +356,11 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
                               # attach info to cdata_form
                               that.cdata.conceptName = that.prefLabel
                               that.cdata.conceptURI = that.uri
-                              # lock in form
-                              that.cdata_form.getFieldsByName("conceptName")[0].storeValue(that.prefLabel).displayValue()
-                              displayURI = that.cdata.conceptURI
-                              if displayURI.indexOf('uri.gbv.de/terminology') > 0
-                                displayURI = 'https://uri.gbv.de/terminology/...'
-                              that.cdata_form.getFieldsByName("conceptURI")[0].setText(displayURI)
-                              that.cdata_form.getFieldsByName("conceptURI")[0].show()
+                              # trigger change on form
+                              that.cdata_form.getFieldsByName("searchbarInput")[0].storeValue(that.prefLabel + ' teee222st')     
+                                
+                              # hide popover
+                              that.popover.hide()
 
         # add '+'-Button, if not guideterm
         plusButton.setEnabled(!that.guideTerm)

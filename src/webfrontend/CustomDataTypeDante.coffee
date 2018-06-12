@@ -1,10 +1,16 @@
+# there are only 2 use-cases which can be configured by config
+#   1. use as a dropdown
+#   2. use as a searchfield with popover (extended mode)
+#       a) for treeview 
+#       b) for more details (f.e. categorie, type ..) --> (not needed in dante!!!)
+
 class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
   #######################################################################
   # load  css
-  CUI.ready =>
-    #cssLoader = new CUI.CSSLoader()
-    #cssLoader.load(url: '/api/v1/plugin/static/extension/custom-data-type-dante/css/CustomDataTypeDante.css')
+  #CUI.ready =>
+  #  cssLoader = new CUI.CSSLoader()
+  #  cssLoader.load(url: '/api/v1/plugin/static/extension/custom-data-type-dante/css/CustomDataTypeDante.css')
 
   #######################################################################
   # return name of plugin
@@ -26,121 +32,343 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
       xreturn = 'gender'
     xreturn
 
-  # BACK TO LIBRARY!=!=!=!=!?!?!?!??!?
-  ########################################################################
-  # check if field is empty
-  isEmpty: (data, top_level_data, opts={}) ->
-      if opts?.mode == "expert"
-          console.log "f: isEmpty - expers"
-          console.log opts
-          console.log data
-          console.log @name()
-          console.log data[@name()]
-          console.log typeof data[@name()]
-          # is there any data?
-          if not CUI.util.isEmpty(data[@name()])
-            # is string from input-searchfield?
-            if typeof data[@name()] is 'string'
-              # check plain input in search
-              result = CUI.util.isEmpty(data[@name()]?.trim())
-              console.log result
-              return result
-            # is object?
-            if typeof data[@name()] is 'object'
-              result = CUI.util.isEmpty(data[@name()]?.conceptURI?.trim())
-              console.log result
-              return result
-          else
-            return true
-      if data[@name()]?.conceptURI
-          return false
-      else
-          return true
-
   #######################################################################
-  # update result in extended search
-  __updateExtendedSearch: (cdata, layout, search_token) ->
-    console.log "f: __updateExtendedSearch"
-    console.log search_token
-    search_token.opts.data.test_treeview = "test1"
-    #search_token.setSearchInput("TEEEST")
-    layout.replace(search_token.getInput().DOM, "center")
+  # layout with searchbar and vertical-dots-button for menu 
+  #     for popover-use
+  
+  # !!! function is in library! move it back, if development is done
+  # because it works for all plugins except "georef"
+  __renderEditorInputPopover: (data, cdata, opts={}) ->
 
-  #######################################################################
-  # returns markup to display in expert search
-  renderSearchInput: (data, opts={}) ->
     that = @
+
+    layout
+
     # if treeview?
-    if that.getCustomMaskSettings().use_tree_view?.value
-      console.warn("f renderSearchInput");
-      console.log(data);
-      console.warn("choose from treeview please");
-      console.log(data);
-      cdata = {
-            conceptName : ''
-            conceptURI : ''
-      }
+    if that.getCustomMaskSettings().editor_style?.value == 'popover_with_treeview'
+      #cdata = {
+      #      conceptName : ''
+      #      conceptURI : ''
+      #}
       # make searchfield
+      
+      # kann das eventuell raus!?!? 
+      # oder für extended suche?
       search_token = new SearchToken
           column: @
           data: data
           fields: opts.fields
       search_token.element.readOnly = true
       search_token.element.placeholder = '<--'
-      #console.log search_token
-      #console.log search_token.getInput().DOM
-      # layout for extended search via tree
-      layout = new CUI.HorizontalLayout
-        left:
-          content:
-              new CUI.Buttonbar(
-                buttons: [
-                    new CUI.Button
-                        text: ""
-                        icon: 'edit'
-                        group: "groupA"
+      # disable till further dev...
+      search_token = null
 
-                        onClick: (ev, btn) =>
-                          @showEditPopover(btn, cdata, layout, search_token)
-                          # alles in dieser Datei!
-                          # showEditPopover ruft dann "__updateResult" auf.
-                          # einen weiteren parameter an showEditPopover dran und dann
-                          # eben nicht "updateResult", sondern "updateExtendedSearch" aufrufen und
-                          # die Werte entsprechend irgendwie füllen
-
-                    new CUI.Button
-                        text: ""
-                        icon: 'trash'
-                        group: "groupA"
-                        onClick: (ev, btn) =>
-                          cdata = {
-                                conceptName : ''
-                                conceptURI : ''
-                          }
-                          data[@name()] = cdata
-                          # trigger form change
-                          @__updateResult(cdata, layout)
-                          CUI.Events.trigger
-                            node: @__layout
-                            type: "editor-changed"
-                          CUI.Events.trigger
-                            node: layout
-                            type: "editor-changed"
-                ]
-              )
+    # build layout for editor
+    layout = new CUI.HorizontalLayout
+        class: ''
         center:
-            content:
-              search_token.getInput().DOM
-        right: {}
-        layout
-    # no treeview
-    else
-      search_token = new SearchToken
-          column: @
-          data: data
-          fields: opts.fields
-      search_token.getInput().DOM
+          class: ''
+        right:
+          content:
+              new CUI.Buttonbar
+                buttons: [
+                  new CUI.Button
+                    text: ''
+                    icon: new CUI.Icon(class: "fa-ellipsis-v")
+                    class: 'pluginDirectSelectEditSearch'
+                    # show "dots"-menu on click on 3 vertical dots
+                    onClick: (e, dotsButton) =>
+                      dotsButtonMenu = new CUI.Menu
+                          element : dotsButton
+                          menu_items = [
+                              #search
+                              text: 'Suchen'
+                              value: 'search'
+                              icon_left: new CUI.Icon(class: "fa-search")
+                              onClick: (e2, btn2) -> 
+                                that.showEditPopover(dotsButton, cdata, layout, search_token)
+                            ,
+                              #detailinfo
+                              text: 'Detailinfo'
+                              value: 'detail'
+                              icon_left: new CUI.Icon(class: "fa-info-circle")
+                              disabled: that.isEmpty(data, 0, 0)
+                              tooltip:
+                                markdown: true
+                                placement: 'w'
+                                content: (tooltip) ->
+                                  if !that.isEmpty(data, 0, 0)
+                                    # get jskos-details-data
+                                    encodedURI = encodeURIComponent(cdata.conceptURI)
+                                    extendedInfo_xhr = { "xhr" : undefined }
+                                    that.__getAdditionalTooltipInfo(encodedURI, tooltip, extendedInfo_xhr)
+                                    # loader, until details are xhred
+                                    new CUI.Label(icon: "spinner", text: $$('custom.data.type.dante.modal.form.popup.loadingstring'))                                      
+                            ,
+                              # call uri
+                              text: 'URI aufrufen'
+                              value: 'uri'
+                              icon_left: new CUI.Icon(class: "fa-external-link")
+                              disabled: that.isEmpty(data, 0, 0)
+                              onClick: -> 
+                                window.open cdata.conceptURI, "_blank"
+                            ,
+                              #delete / clear
+                              text: 'Löschen'
+                              value: 'delete'
+                              icon_left: new CUI.Icon(class: "fa-trash")
+                              disabled: that.isEmpty(data, 0, 0)
+                              onClick: ->
+                                cdata = {
+                                    conceptName : ''
+                                    conceptURI : ''
+                                }
+                                data[that.name()] = cdata
+                                that.__updateResult(cdata, layout)
+                          ]
+                          itemList = 
+                            items: menu_items
+                      dotsButtonMenu.setItemList(itemList)
+                      dotsButtonMenu.show()                          
+                ]
+    @__updateResult(cdata, layout)
+    layout
 
+  #######################################################################
+  # handle suggestions-menu  (POPOVER)
+  #######################################################################
+  __updateSuggestionsMenu: (cdata, cdata_form, dante_searchstring, input, suggest_Menu, searchsuggest_xhr, layout) ->
+    that = @
+
+    delayMillisseconds = 50
+    
+    # show loader
+    menu_items = [
+        text: $$('custom.data.type.dante.modal.form.loadingSuggestions')
+        icon_left: new CUI.Icon(class: "fa-spinner fa-spin")
+        disabled: true
+    ]
+    itemList = 
+      items: menu_items
+    suggest_Menu.setItemList(itemList)
+
+    setTimeout ( ->
+
+        dante_searchstring = dante_searchstring.replace /^\s+|\s+$/g, ""
+        if dante_searchstring.length == 0
+            return
+            
+        suggest_Menu.show()
+
+        # read "count of suggestion" --> limit-Parameter
+        dante_countSuggestions = 50
+
+        # run autocomplete-search via xhr
+        if searchsuggest_xhr.xhr != undefined
+            # abort eventually running request
+            searchsuggest_xhr.xhr.abort()
+
+        # start new request
+
+        # cache?
+        cache = '&cache=0'
+        if that.getCustomMaskSettings().use_cache?.value
+            cache = '&cache=1'
+        
+        # start request
+        searchsuggest_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/suggest?search=' + dante_searchstring + '&voc=' + that.getUsedVocabularyName() + '&language=' + that.getFrontendLanguage() + '&limit=' + dante_countSuggestions + cache)
+        searchsuggest_xhr.xhr.start().done((data, status, statusText) ->
+
+            extendedInfo_xhr = { "xhr" : undefined }
+
+            # create new menu with suggestions
+            menu_items = []
+            for suggestion, key in data[1]
+              do(key) ->
+                item =
+                  text: suggestion
+                  value: data[3][key]
+                  tooltip:
+                    markdown: true
+                    placement: "ne"
+                    content: (tooltip) ->
+                      # show infopopup
+                      that.__getAdditionalTooltipInfo(data[3][key], tooltip, extendedInfo_xhr)
+                      new CUI.Label(icon: "spinner", text: $$('custom.data.type.dante.modal.form.popup.loadingstring'))
+                menu_items.push item
+
+            # set new items to menu
+            itemList =
+              onClick: (ev2, btn) ->
+                console.log "clicked on suggest"
+                console.log that.popover
+                # if not treeview
+                if that.getCustomMaskSettings().editor_style?.value != 'popover_with_treeview' || ! that.popover
+                  console.log "111"
+                  searchUri = btn.getOpt("value")
+                  
+                  if that.popover
+                    # put a loader to popover
+                    newLoaderPanel = new CUI.Pane
+                        class: "cui-pane"
+                        top:
+                            content: [
+                                new CUI.PaneHeader
+                                    left:
+                                        content:
+                                            new CUI.Label(text: $$('custom.data.type.dante.modal.form.popup.choose'))
+                                    right:
+                                        content:
+                                            new CUI.EmptyLabel
+                                              text: that.getUsedVocabularyName()
+                            ]                      
+                        center:
+                            content: [
+                                new CUI.HorizontalLayout
+                                  maximize: true
+                                  left: null
+                                  center:
+                                    content:                          
+                                      new CUI.Label
+                                        centered: true
+                                        size: "big"
+                                        icon: "spinner"
+                                        text: $$('custom.data.type.dante.modal.form.popup.loadingstring')
+                                  right: null
+                            ]
+                    that.popover.setContent(newLoaderPanel)
+
+                  # else set loader to suggest menu
+                  ### 
+                  ###
+
+                  # start request for the choosen record
+                  dataEntry_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + searchUri + cache)
+                  dataEntry_xhr.start().done((data, status, statusText) ->
+                    if data.length == 1
+                      if data[0].uri 
+                        # lock result in variables
+                        if data[0].prefLabel?[that.getFrontendLanguage()]                        
+                          conceptName = data[0].prefLabel?[that.getFrontendLanguage()]
+                        else
+                          conceptName = data[0].prefLabel[Object.keys(data[0].prefLabel)[0]]
+                        conceptURI = data[0].uri
+                        
+                        # lock in save data
+                        cdata.conceptURI = conceptURI
+                        cdata.conceptName = conceptName
+                        # update the layout in form
+                        console.log "2222"
+                        that.__updateResult(cdata, layout)
+                        
+                        # close popover
+                        if that.popover
+                          that.popover.hide()
+                        
+                        @
+                  )
+                  
+                # if treeview
+                if that.getCustomMaskSettings().editor_style?.value == 'popover_with_treeview' && that.popover
+                  if cdata_form
+                    # set choosen suggest-entry to searchbar
+                    cdata_form.getFieldsByName("searchbarInput")[0].setValue(btn.getText())
+  
+              items: menu_items
+
+            # if no hits set "empty" message to menu
+            if itemList.items.length == 0
+              itemList =
+                items: [
+                  text: $$('custom.data.type.dante.modal.form.popup.suggest.nohit')
+                  value: undefined
+                ]
+            suggest_Menu.setItemList(itemList)
+            suggest_Menu.show()
+        )
+    ), delayMillisseconds
+
+  #######################################################################
+  # update result in Masterform (funktion auch in lib schon drin, aber eben anders)
+  __updateResult: (cdata, layout) ->
+    that = @
+    # if field is not empty
+    if cdata?.conceptURI 
+      # die uuid einkürzen..
+      displayURI = cdata.conceptURI
+      displayURI = displayURI.replace('http://', '')
+      displayURI = displayURI.replace('https://', '')
+      uriParts = displayURI.split('/')
+      uuid = uriParts.pop()
+      if uuid.length > 10 
+        uuid = uuid.substring(0,5) + '…'
+        uriParts.push(uuid)
+        displayURI = uriParts.join('/')
+        
+      info = new CUI.VerticalLayout
+        class: 'ez5-info_dante'
+        top:
+          content:
+              new CUI.Label
+                text: cdata.conceptName
+        bottom:
+          content:
+            new CUI.Button
+              name: "outputButtonHref"
+              appearance: "flat"
+              size: "normal"
+              text: displayURI
+              tooltip:
+                markdown: true
+                placement: 'nw'
+                content: (tooltip) ->
+                  # get jskos-details-data
+                  encodedURI = encodeURIComponent(cdata.conceptURI)
+                  extendedInfo_xhr = { "xhr" : undefined }
+                  that.__getAdditionalTooltipInfo(encodedURI, tooltip, extendedInfo_xhr)
+                  # loader, unteil details are xhred
+                  new CUI.Label(icon: "spinner", text: $$('custom.data.type.dante.modal.form.popup.loadingstring'))   
+              onClick: (evt,button) =>
+                  window.open cdata.conceptURI, "_blank"
+
+      layout.replace(info, 'center')
+      layout.addClass('ez5-linked-object-edit')                    
+      options =
+        class: 'ez5-linked-object-container'
+      layout.__initPane(options, 'center') 
+      
+    # if field is empty, display searchfield
+    if ! cdata?.conceptURI
+      suggest_Menu_directInput
+
+      inputX = new CUI.Input
+                  class: "pluginDirectSelectEditInput"
+                  undo_and_changed_support: false
+                  name: "directSelectInput"
+                  content_size: false
+                  onKeyup: (input) =>
+                    # do suggest request and show suggestions
+                    searchstring = input.getValueForInput()
+                    @__updateSuggestionsMenu(cdata, 0, searchstring, input, suggest_Menu_directInput, searchsuggest_xhr, layout)
+      inputX.render()
+
+      # init suggestmenu
+      suggest_Menu_directInput = new CUI.Menu
+          element : inputX
+          use_element_width_as_min_width: true
+
+      # init xhr-object to abort running xhrs
+      searchsuggest_xhr = { "xhr" : undefined }
+      
+      layout.replace(inputX, 'center')
+      layout.removeClass('ez5-linked-object-edit')                    
+      options =
+        class: ''
+      layout.__initPane(options, 'center')   
+      
+    # did data change?
+    that.__setEditorFieldStatus(cdata, layout)
+    
 
   #######################################################################
   # render editorinputform
@@ -152,24 +380,34 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
             conceptURI : ''
         }
         # if default values are set in masksettings
-        if @getCustomMaskSettings().default_concept_uuid?.value && @getCustomMaskSettings().default_concept_name?.value
+        if @getCustomMaskSettings().default_concept_uri?.value && @getCustomMaskSettings().default_concept_name?.value
             cdata = {
                 conceptName : @getCustomMaskSettings().default_concept_name?.value
-                conceptURI : 'https://uri.gbv.de/terminology/dante/' + @getCustomMaskSettings().default_concept_uuid?.value
+                conceptURI : @getCustomMaskSettings().default_concept_uri?.value
             }
         data[@name()] = cdata
     else
         cdata = data[@name()]
 
     # inline or popover?
-    if @getCustomMaskSettings().use_inline?.value
+    if @getCustomMaskSettings().editor_style?.value == 'dropdown'
         @__renderEditorInputInline(data, cdata)
     else
-        @__renderEditorInputPopover(data, cdata)
+        @__renderEditorInputPopover(data, cdata, opts)
+
+  #######################################################################
+  # get frontend-language
+  getFrontendLanguage: () ->
+    # language
+    desiredLanguage = ez5.loca.getLanguage()
+    desiredLanguage = desiredLanguage.split('-')
+    desiredLanguage = desiredLanguage[0]
+    
+    desiredLanguage
 
 
   #######################################################################
-  # render form (INLINE, with Dropdown)
+  # render form as DROPDOWN
   __renderEditorInputInline: (data, cdata) ->
         fields = []
         select = {
@@ -186,13 +424,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                   if @getCustomMaskSettings().use_cache?.value
                       cache = '&cache=1'
 
-                  # language
-                  desiredLanguage = ez5.loca.getLanguage()
-                  desiredLanguage = desiredLanguage.split('-')
-                  desiredLanguage = desiredLanguage[0]
-
                   # start new request
-                  searchsuggest_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/suggest?search=&voc=' + @getUsedVocabularyName() + '&language=' + desiredLanguage + '&limit=1000' + cache)
+                  searchsuggest_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/suggest?search=&voc=' + @getUsedVocabularyName() + '&language=' + @getFrontendLanguage() + '&limit=1000' + cache)
                   searchsuggest_xhr.start().done((data, status, statusText) ->
                       # read options for select
                       select_items = []
@@ -258,7 +491,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
 
   #######################################################################
-  # show tooltip with loader and then additional info
+  # show tooltip with loader and then additional info (for extended mode)
   __getAdditionalTooltipInfo: (uri, tooltip, extendedInfo_xhr, context = null) ->
     that = @
 
@@ -282,120 +515,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
     return
 
-
-  #######################################################################
-  # handle suggestions-menu  (POPOVER)
-  #######################################################################
-  __updateSuggestionsMenu: (cdata, cdata_form, suggest_Menu, searchsuggest_xhr) ->
-    that = @
-
-    delayMillisseconds = 200
-
-    setTimeout ( ->
-
-        dante_searchstring = cdata_form.getFieldsByName("searchbarInput")[0].getValue()
-
-        if ! that.getCustomMaskSettings().use_tree_view?.value
-          dante_countSuggestions = cdata_form.getFieldsByName("countOfSuggestions")[0].getValue()
-        else
-          dante_countSuggestions = 50
-
-        if dante_searchstring.length == 0
-            return
-
-        # run autocomplete-search via xhr
-        if searchsuggest_xhr.xhr != undefined
-            # abort eventually running request
-            searchsuggest_xhr.xhr.abort()
-
-        # start new request
-
-        # cache?
-        cache = '&cache=0'
-        if that.getCustomMaskSettings().use_cache?.value
-            cache = '&cache=1'
-        # language
-        desiredLanguage = ez5.loca.getLanguage()
-        desiredLanguage = desiredLanguage.split('-')
-        desiredLanguage = desiredLanguage[0]
-        searchsuggest_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/suggest?search=' + dante_searchstring + '&voc=' + that.getUsedVocabularyName() + '&language=' + desiredLanguage + '&limit=' + dante_countSuggestions + cache)
-        searchsuggest_xhr.xhr.start().done((data, status, statusText) ->
-
-            extendedInfo_xhr = { "xhr" : undefined }
-
-            # create new menu with suggestions
-            menu_items = []
-            for suggestion, key in data[1]
-              do(key) ->
-                item =
-                  text: suggestion
-                  value: data[3][key]
-                  tooltip:
-                    markdown: true
-                    placement: "ne"
-                    content: (tooltip) ->
-                      # show infopopup
-                      that.__getAdditionalTooltipInfo(data[3][key], tooltip, extendedInfo_xhr)
-                      new CUI.Label(icon: "spinner", text: $$('custom.data.type.dante.modal.form.popup.loadingstring'))
-                menu_items.push item
-
-            # set new items to menu
-            itemList =
-              onClick: (ev2, btn) ->
-
-                # if not treeview
-                if ! that.getCustomMaskSettings().use_tree_view?.value
-                  console.log "log new resuilt"
-                  # lock result in variables
-                  conceptName = btn.getText()
-                  conceptURI = btn.getOpt("value")
-
-                  # lock in save data
-                  cdata.conceptURI = conceptURI
-                  cdata.conceptName = conceptName
-
-                  # lock in form
-                  cdata_form.getFieldsByName("conceptName")[0].storeValue(conceptName).displayValue()
-                  displayURI = conceptURI
-                  if conceptURI.indexOf('uri.gbv.de/terminology') > 0
-                    displayURI = 'https://uri.gbv.de/terminology/...'
-                  cdata_form.getFieldsByName("conceptURI")[0].setText(displayURI)
-                  cdata_form.getFieldsByName("conceptURI")[0].show()
-
-                  # clear searchbar
-                  cdata_form.getFieldsByName("searchbarInput")[0].setValue('')
-
-                # if treeview
-                if that.getCustomMaskSettings().use_tree_view?.value == true
-                  # set choosen suggest-entry to searchbar
-                  cdata_form.getFieldsByName("searchbarInput")[0].setValue(btn.getText())
-
-              items: menu_items
-
-            # if no hits set "empty" message to menu
-            if itemList.items.length == 0
-              itemList =
-                items: [
-                  text: $$('custom.data.type.dante.modal.form.popup.suggest.nohit')
-                  value: undefined
-                ]
-            suggest_Menu.setItemList(itemList)
-            suggest_Menu.show()
-
-        )
-    ), delayMillisseconds
-
-
-  #######################################################################
-  # set visibility of popover-form-result-fields (hidden, if empty (onInit-check))
-  __setResultFieldVisibility: (elem, cdata, cdata_form) ->
-    if elem.getName() == 'conceptName' || elem.getName() == 'conceptURI'
-      if cdata.conceptURI != '' && cdata.conceptName != ''
-        elem.show()
-        cdata_form.reload()
-    @
-
-
   #######################################################################
   # show popover and fill it with the form-elements
   # https://github.com/programmfabrik/coffeescript-ui-demo/blob/master/src/demos/ListView/ListViewDemo.coffee
@@ -405,6 +524,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     that = @
 
     that.resettedPopup = false;
+    
+    suggest_Menu
 
     # init popover
     @popover = new CUI.Popover
@@ -414,21 +535,24 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
     # init xhr-object to abort running xhrs
     searchsuggest_xhr = { "xhr" : undefined }
-
-    # set default value for count of suggestions
-    cdata.countOfSuggestions = 20
+    
     cdata_form = new CUI.Form
       data: cdata
-      fields: @__getEditorFields(cdata)
+      fields: that.__getEditorFields(cdata)
       onDataChanged: (data, elem) =>
+        console.log "f onDataChanged"
+        console.log(data)
+        console.log(elem)
+        console.log search_token
         if !search_token
-          @__updateResult(cdata, layout)
+          console.log ("f __updateResult")
+          that.__updateResult(cdata, layout)
         else
-          @__updateExtendedSearch(cdata, layout, search_token)
-        @__setEditorFieldStatus(cdata, layout)
+          # disabled till further dev ...
+          that.__updateExtendedSearch(cdata, layout, search_token)
+        that.__setEditorFieldStatus(cdata, layout)
         if elem.opts.name == 'searchbarInput'
-          @__updateSuggestionsMenu(cdata, cdata_form, suggest_Menu, searchsuggest_xhr)
-        @__setResultFieldVisibility(elem, cdata, cdata_form)
+          that.__updateSuggestionsMenu(cdata, cdata_form, data.searchbarInput, elem, suggest_Menu, searchsuggest_xhr, layout)
     .start()
 
     # init suggestmenu
@@ -437,7 +561,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         use_element_width_as_min_width: true
 
     # treeview?
-    if that.getCustomMaskSettings().use_tree_view?.value == true
+    if that.getCustomMaskSettings().editor_style?.value == 'popover_with_treeview'
 
       style = CUI.dom.element("style")
       style.innerHTML = ".commonPlugin_Input { max-width: 100%; } .commonPlugin_Input .cui-input { max-width: 50%; } .dantePlugin_ResetButton { margin-left: 4px; } .dantePlugin_SearchButton { margin-left: 4px; } .dantePlugin_Treeview {border-bottom: 1px solid #efefef; padding: 10px 0px; max-height: 500px; overflow-y: auto;}"
@@ -635,35 +759,11 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   __getEditorFields: (cdata) ->
     that = @
     fields = []
-    # count of suggestions (not for treeview)
-    if ! that.getCustomMaskSettings().use_tree_view?.value
-        option =  {
-          type: CUI.Select
-          class: "commonPlugin_Select"
-          undo_and_changed_support: false
-          form:
-              label: $$('custom.data.type.dante.modal.form.text.count')
-          options: [
-            (
-                value: 10
-                text: '10 ' + $$("custom.data.type.dante.modal.form.text.count")
-            )
-            (
-                value: 20
-                text: '20 ' + $$("custom.data.type.dante.modal.form.text.count")
-            )
-            (
-                value: 50
-                text: '50 ' + $$("custom.data.type.dante.modal.form.text.count")
-            )
-            (
-                value: 100
-                text: '100 ' + $$("custom.data.type.dante.modal.form.text.count")
-            )
-          ]
-          name: 'countOfSuggestions'
-        }
-        fields.push option
+    # evt. dropdown for vocabularyschoose ...
+    # evt. dropdown for vocabularyschoose ...
+    # evt. dropdown for vocabularyschoose ...
+    # evt. dropdown for vocabularyschoose ...    
+    
     # searchfield (autocomplete)
     option =  {
           type: CUI.Input
@@ -675,50 +775,13 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
           name: "searchbarInput"
         }
     fields.push option
-    # result name (must)
-    option =  {
-          form:
-            label: $$("custom.data.type.dante.modal.form.text.result.label")
-          type: CUI.Output
-          name: "conceptName"
-          data: {conceptName: cdata.conceptName}
-          onInit : (elem) =>
-            if cdata.conceptName == ''
-              elem.hide()
-            else
-              elem.show()
-        }
-    fields.push option
-    # result uri (must)
-    displayURI = cdata.conceptURI
-    if cdata.conceptURI.indexOf('uri.gbv.de/terminology') > 0
-      displayURI = 'https://uri.gbv.de/terminology/...'
-    option =  {
-          form:
-            label: $$("custom.data.type.dante.modal.form.text.uri.label")
-          type: CUI.FormButton
-          name: "conceptURI"
-          icon: new CUI.Icon(class: "fa-external-link")
-          text: displayURI
-          onClick: (evt,button) =>
-            window.open 'https://uri.gbv.de/terminology/?uri=' + cdata.conceptURI, "_blank"
-          onInit : (elem) =>
-            if cdata.conceptURI == ''
-              elem.hide()
-            else
-              elem.show()
-          onDataChanged : (button) =>
-            console.log "onDataChanged"
-        }
-
-    fields.push option
 
     fields
 
 
 
   #######################################################################
-  # renders the "result" in original form (outside popover)
+  # renders the "resultmask" (outside popover)
   __renderButtonByData: (cdata) ->
 
     that = @
@@ -734,8 +797,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
     # output Button with Name of picked dante-Entry and URI
     encodedURI = encodeURIComponent(cdata.conceptURI)
-    test = new CUI.ButtonHref
-    console.log test
 
     new CUI.ButtonHref
       name: "outputButtonHref"
@@ -743,7 +804,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
       size: "normal"
       href: 'https://uri.gbv.de/terminology/?uri=' + encodedURI
       target: "_blank"
-      icon_left: new CUI.Icon(class: "fa-commenting-o")
+      #icon_left: new CUI.Icon(class: "fa-commenting-o")
       #icon_right: new CUI.Icon(class: "fa-external-link-square-alt")
       class: "cdt_dante_smallMarginTop"
       tooltip:

@@ -9,6 +9,7 @@ INSTALL_FILES = \
 	$(WEB)/l10n/cultures.json \
 	$(WEB)/l10n/de-DE.json \
 	$(WEB)/l10n/en-US.json \
+  $(WEB)/custom-data-type-dante.scss \
 	$(JS) \
 	CustomDataTypeDante.config.yml
 
@@ -26,9 +27,11 @@ COFFEE_FILES = easydb-library/src/commons.coffee \
 
 all: build
 
+SCSS_FILES = src/webfrontend/scss/main.scss
+
 include easydb-library/tools/base-plugins.make
 
-build: code $(L10N)
+build: code $(L10N) $(SCSS)
 
 code: $(subst .coffee,.coffee.js,${COFFEE_FILES})
 	mkdir -p build
