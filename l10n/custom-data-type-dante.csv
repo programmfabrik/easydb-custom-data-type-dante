@@ -58,3 +58,5 @@ custom.data.type.dante.modal.form.popup.jskospreview.depiction,Bilder,Depiction
 custom.data.type.dante.config.parameter.schema.mapbox_access_token.value.label,Mapbox-Access-Token (Kartenanzeige),Mapbox-Access-Token (display maps)
 custom.data.type.dante.modal.form.dropdown.loadingentries,Einträge werden geladen ..,loading entries ..
 custom.data.type.dante.modal.form.dropdown.choose,auswählen ..,choose ..
+custom.data.type.dante.modal.form.dropdown.selectvocabularyLabel,Vokabular,Vocabulary,
+custom.data.type.dante.modal.form.dropdown.choosefromvocall,Alle erlaubten Vokabulare,All allowed vocabularys,

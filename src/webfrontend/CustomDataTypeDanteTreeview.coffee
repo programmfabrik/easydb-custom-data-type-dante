@@ -3,7 +3,7 @@
 #   - uses the DANTE-API as source for the treeview
 #   - allows searches in DANTE-API and displays results in treeview
 #
-#  2. extended CUI.ListViewTreeNode
+#  2. extends CUI.ListViewTreeNode
 #   - offers preview and selection of DANTE-records for treeview-nodes
 ##################################################################################
 
