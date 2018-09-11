@@ -19,8 +19,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     if ! xreturn
       xreturn = 'gender'
     xreturn
-   
-  
+
+
   #######################################################################
   # get the active vocabular from vocabulary-dropdown (POPOVER)
   getActiveVocabularyName: (cdata) ->
@@ -34,108 +34,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         vocParameter = vocTestArr[0];
       else
         vocParameter = that.getVocabularyNameFromDatamodel();
-        
+
     vocParameter
-
-  #######################################################################
-  # layout with searchbar and vertical-dots-button for menu (POPOVER)
-
-  # !!! function is in library! move it back, if development is done
-  # because it works for all plugins except "georef"
-  __renderEditorInputPopover: (data, cdata, opts={}) ->
-
-    that = @
-    layout
-    
-    # if treeview?
-    if that.getCustomMaskSettings().editor_style?.value == 'popover_with_treeview'
-      #cdata = {
-      #      conceptName : ''
-      #      conceptURI : ''
-      #}
-      # make searchfield
-      
-      # kann das eventuell raus!?!? 
-      # oder für extended suche?
-      search_token = new SearchToken
-          column: @
-          data: data
-          fields: opts.fields
-      search_token.element.readOnly = true
-      search_token.element.placeholder = '<--'
-      # disable till further dev...
-      search_token = null
-
-    # build layout for editor
-    layout = new CUI.HorizontalLayout
-        class: ''
-        center:
-          class: ''
-        right:
-          content:
-              new CUI.Buttonbar
-                buttons: [
-                  new CUI.Button
-                    text: ''
-                    icon: new CUI.Icon(class: "fa-ellipsis-v")
-                    class: 'pluginDirectSelectEditSearch'
-                    # show "dots"-menu on click on 3 vertical dots
-                    onClick: (e, dotsButton) =>
-                      dotsButtonMenu = new CUI.Menu
-                          element : dotsButton
-                          menu_items = [
-                              #search
-                              text: 'Suchen'
-                              value: 'search'
-                              icon_left: new CUI.Icon(class: "fa-search")
-                              onClick: (e2, btn2) ->
-                                that.showEditPopover(dotsButton, cdata, layout, search_token)
-                            ,
-                              #detailinfo
-                              text: 'Detailinfo'
-                              value: 'detail'
-                              icon_left: new CUI.Icon(class: "fa-info-circle")
-                              disabled: that.isEmpty(data, 0, 0)
-                              tooltip:
-                                markdown: true
-                                placement: 'w'
-                                content: (tooltip) ->
-                                  if !that.isEmpty(data, 0, 0)
-                                    # get jskos-details-data
-                                    encodedURI = encodeURIComponent(cdata.conceptURI)
-                                    extendedInfo_xhr = { "xhr" : undefined }
-                                    that.__getAdditionalTooltipInfo(encodedURI, tooltip, extendedInfo_xhr)
-                                    # loader, until details are xhred
-                                    new CUI.Label(icon: "spinner", text: $$('custom.data.type.dante.modal.form.popup.loadingstring'))
-                            ,
-                              # call uri
-                              text: 'URI aufrufen'
-                              value: 'uri'
-                              icon_left: new CUI.Icon(class: "fa-external-link")
-                              disabled: that.isEmpty(data, 0, 0)
-                              onClick: ->
-                                window.open cdata.conceptURI, "_blank"
-                            ,
-                              #delete / clear
-                              text: 'Löschen'
-                              value: 'delete'
-                              icon_left: new CUI.Icon(class: "fa-trash")
-                              disabled: that.isEmpty(data, 0, 0)
-                              onClick: ->
-                                cdata = {
-                                    conceptName : ''
-                                    conceptURI : ''
-                                }
-                                data[that.name()] = cdata
-                                that.__updateResult(cdata, layout)
-                          ]
-                          itemList =
-                            items: menu_items
-                      dotsButtonMenu.setItemList(itemList)
-                      dotsButtonMenu.show()
-                ]
-    @__updateResult(cdata, layout)
-    layout
 
   #######################################################################
   # handle suggestions-menu  (POPOVER)
@@ -178,7 +78,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
         # voc parameter
         vocParameter = that.getActiveVocabularyName(cdata)
-        
+
         # start request
         searchsuggest_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/suggest?search=' + dante_searchstring + '&voc=' + vocParameter + '&language=' + that.getFrontendLanguage() + '&limit=' + dante_countSuggestions + cache)
         searchsuggest_xhr.xhr.start().done((data, status, statusText) ->
@@ -283,92 +183,11 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         )
     ), delayMillisseconds
 
-  #######################################################################
-  # update result in Masterform (funktion auch in lib schon drin, aber eben anders)
-  __updateResult: (cdata, layout) ->
-    that = @
-    # if field is not empty
-    if cdata?.conceptURI
-      # die uuid einkürzen..
-      displayURI = cdata.conceptURI
-      displayURI = displayURI.replace('http://', '')
-      displayURI = displayURI.replace('https://', '')
-      uriParts = displayURI.split('/')
-      uuid = uriParts.pop()
-      if uuid.length > 10
-        uuid = uuid.substring(0,5) + '…'
-        uriParts.push(uuid)
-        displayURI = uriParts.join('/')
-
-      info = new CUI.VerticalLayout
-        class: 'ez5-info_dante'
-        top:
-          content:
-              new CUI.Label
-                text: cdata.conceptName
-        bottom:
-          content:
-            new CUI.Button
-              name: "outputButtonHref"
-              appearance: "flat"
-              size: "normal"
-              text: displayURI
-              tooltip:
-                markdown: true
-                placement: 'nw'
-                content: (tooltip) ->
-                  # get jskos-details-data
-                  encodedURI = encodeURIComponent(cdata.conceptURI)
-                  extendedInfo_xhr = { "xhr" : undefined }
-                  that.__getAdditionalTooltipInfo(encodedURI, tooltip, extendedInfo_xhr)
-                  # loader, unteil details are xhred
-                  new CUI.Label(icon: "spinner", text: $$('custom.data.type.dante.modal.form.popup.loadingstring'))
-              onClick: (evt,button) =>
-                  window.open cdata.conceptURI, "_blank"
-
-      layout.replace(info, 'center')
-      layout.addClass('ez5-linked-object-edit')
-      options =
-        class: 'ez5-linked-object-container'
-      layout.__initPane(options, 'center')
-
-    # if field is empty, display searchfield
-    if ! cdata?.conceptURI
-      suggest_Menu_directInput
-
-      inputX = new CUI.Input
-                  class: "pluginDirectSelectEditInput"
-                  undo_and_changed_support: false
-                  name: "directSelectInput"
-                  content_size: false
-                  onKeyup: (input) =>
-                    # do suggest request and show suggestions
-                    searchstring = input.getValueForInput()
-                    @__updateSuggestionsMenu(cdata, 0, searchstring, input, suggest_Menu_directInput, searchsuggest_xhr, layout)
-      inputX.render()
-
-      # init suggestmenu
-      suggest_Menu_directInput = new CUI.Menu
-          element : inputX
-          use_element_width_as_min_width: true
-
-      # init xhr-object to abort running xhrs
-      searchsuggest_xhr = { "xhr" : undefined }
-
-      layout.replace(inputX, 'center')
-      layout.removeClass('ez5-linked-object-edit')
-      options =
-        class: ''
-      layout.__initPane(options, 'center')
-
-    # did data change?
-    that.__setEditorFieldStatus(cdata, layout)
-
 
   #######################################################################
   # render editorinputform
   renderEditorInput: (data, top_level_data, opts) ->
-    #console.error @, data, top_level_data, opts, @name(), @fullName()   
+    #console.error @, data, top_level_data, opts, @name(), @fullName()
     if not data[@name()]
         cdata = {
             conceptName : ''
@@ -523,7 +342,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   # show popover and fill it with the form-elements
   showEditPopover: (btn, cdata, layout, search_token) ->
     that = @
-    
+
     # if "reset"-button is pressed, dont use cache for this popup
     that.resettedPopup = false;
 
@@ -575,7 +394,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
       # initialisize vocParameterif more then 1 voc
       vocParameter = that.getActiveVocabularyName(cdata)
-        
+
       treeview.getTopTreeView(vocParameter, 1)
 
       treeviewPane = new CUI.Pane
@@ -764,7 +583,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     # dropdown for vocabulary-selection if more then 1 voc
     vocTest = that.getVocabularyNameFromDatamodel()
     vocTestArr = vocTest.split('|')
-    if vocTestArr.length > 1
+    if vocTestArr.length > 1 or vocTest == '*'
       select =  {
           type: CUI.Select
           undo_and_changed_support: false
@@ -775,8 +594,13 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
           options: (thisSelect) =>
             dfr = new CUI.Deferred()
             values = []
+
+            # search for the wanted vocs or all vocs
+            notationStr = '&notation=' + that.getVocabularyNameFromDatamodel()
+            if that.getVocabularyNameFromDatamodel() == '*'
+              notationStr = '';
             # start new request
-            searchsuggest_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/voc?notation=' + that.getVocabularyNameFromDatamodel() + '&cache=1')
+            searchsuggest_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/voc?cache=1' + notationStr)
             searchsuggest_xhr.start().done((data, status, statusText) ->
                 # read options for select
                 select_items = []
@@ -836,23 +660,31 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
     # output Button with Name of picked dante-Entry and URI
     encodedURI = encodeURIComponent(cdata.conceptURI)
-
-    new CUI.ButtonHref
-      name: "outputButtonHref"
-      appearance: "link"
-      size: "normal"
-      href: 'https://uri.gbv.de/terminology/?uri=' + encodedURI
-      target: "_blank"
-      class: "cdt_dante_smallMarginTop"
-      tooltip:
-        markdown: true
-        placement: 'nw'
-        content: (tooltip) ->
-          # get jskos-details-data
-          that.__getAdditionalTooltipInfo(encodedURI, tooltip, extendedInfo_xhr)
-          # loader, until details are xhred
-          new CUI.Label(icon: "spinner", text: $$('custom.data.type.dante.modal.form.popup.loadingstring'))
-      text: cdata.conceptName
+    new CUI.HorizontalLayout
+      maximize: true
+      left:
+        content:
+          new CUI.Label
+            centered: true
+            text: cdata.conceptName
+      center:
+        content:
+          new CUI.ButtonHref
+            name: "outputButtonHref"
+            appearance: "link"
+            size: "normal"
+            href: 'https://uri.gbv.de/terminology/?uri=' + encodedURI
+            target: "_blank"
+            class: "cdt_dante_smallMarginTop"
+            tooltip:
+              markdown: true
+              placement: 'nw'
+              content: (tooltip) ->
+                # get jskos-details-data
+                that.__getAdditionalTooltipInfo(encodedURI, tooltip, extendedInfo_xhr)
+                # loader, until details are xhred
+                new CUI.Label(icon: "spinner", text: $$('custom.data.type.dante.modal.form.popup.loadingstring'))
+      right: null
     .DOM
 
 
