@@ -11,7 +11,7 @@ CustomDataTypeDANTE.prototype.getJSKOSPreview = (data, mapbox_access_token = fal
     data = data[0]
 
   prefLabel = $$('custom.data.type.dante.modal.form.popup.jskospreview.nopreflabel')
-  if data.prefLabel
+  if data?.prefLabel
     prefLabel = that.getPrefLabelFromJSKOS(data)
 
   xuri = data.uri.replace(/terminology/g, '...')
@@ -42,7 +42,7 @@ CustomDataTypeDANTE.prototype.getJSKOSPreview = (data, mapbox_access_token = fal
 
   # Preflabels in other languages
   prefLabels = ''
-  if data.prefLabel
+  if data?.prefLabel
     for key, val of data.prefLabel
         if val != prefLabel
           prefLabels = ' - ' + val + ' (' + key + ')<br />' + prefLabels

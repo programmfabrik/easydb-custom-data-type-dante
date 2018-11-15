@@ -60,3 +60,6 @@ custom.data.type.dante.modal.form.dropdown.loadingentries,Einträge werden gelad
 custom.data.type.dante.modal.form.dropdown.choose,auswählen ..,choose ..
 custom.data.type.dante.modal.form.dropdown.selectvocabularyLabel,Vokabular,Vocabulary,
 custom.data.type.dante.modal.form.dropdown.choosefromvocall,Alle erlaubten Vokabulare,All allowed vocabularys,
+custom.data.type.dante.config.parameter.mask.allow_label_choice.value.label,Erlaube die händische Auswahl aus den gegebenen Labels,Allow manual choice from available labels
+custom.data.type.dante.config.parameter.mask.allow_label_choice.value.checkbox,Erlaubt,Allowed
+custom.data.type.dante.modal.form.popup.choose_manual_label,Auswahl eines Labels, Choose a label

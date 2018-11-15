@@ -10,8 +10,9 @@ INSTALL_FILES = \
 	$(WEB)/l10n/cultures.json \
 	$(WEB)/l10n/de-DE.json \
 	$(WEB)/l10n/en-US.json \
-  $(WEB)/custom-data-type-dante.scss \
+	$(WEB)/custom-data-type-dante.scss \
 	$(JS) \
+	$(CSS) \
 	CustomDataTypeDante.config.yml
 
 # XXX: missing languages, so the following files are not installable
@@ -26,15 +27,15 @@ COFFEE_FILES = easydb-library/src/commons.coffee \
   src/webfrontend/CustomDataTypeDanteParseJSKOS.coffee \
   src/webfrontend/CustomDataTypeDanteTreeview.coffee
 
-all: build
-
 SCSS_FILES = src/webfrontend/scss/main.scss
+
+all: build
 
 include easydb-library/tools/base-plugins.make
 
-build: code $(L10N) $(SCSS)
+build: code css
 
-code: $(subst .coffee,.coffee.js,${COFFEE_FILES})
+code: $(subst .coffee,.coffee.js,${COFFEE_FILES}) $(L10N)
 	mkdir -p build
 	mkdir -p build/webfrontend
 	cat $^ > build/webfrontend/custom-data-type-dante.js

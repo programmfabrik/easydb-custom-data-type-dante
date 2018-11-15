@@ -11,12 +11,10 @@ plugin:
   server:
     api-version:
       require: 1
-  scss:
-    body:
-      - build/webfrontend/custom-data-type-dante.scss
   webfrontend:
     url: custom-data-type-dante.js
     l10n: l10n/
+    css: custom-data-type-dante.css
 custom_types:
   dante:
     mapping:
@@ -41,6 +39,10 @@ custom_types:
               type: select
               options: ["dropdown", "popover", "popover_with_treeview"]
         - name: use_cache
+          parameters:
+            value:
+              type: bool
+        - name: allow_label_choice
           parameters:
             value:
               type: bool

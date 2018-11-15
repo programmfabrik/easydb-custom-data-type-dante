@@ -58,8 +58,9 @@ class DANTE_ListViewTree
         url = location.protocol + '//api.dante.gbv.de/voc/' + vocName + '/top?format=json&properties=+notation&limit=100&cache=' + cache
         topTree_xhr.xhr = new (CUI.XHR)(url: url)
         topTree_xhr.xhr.start().done((data, status, statusText) ->
-          # remove loading row
-          that.treeview.removeRow(0)
+          # remove loading row (if there is one)
+          if that.treeview.getRow(0)
+            that.treeview.removeRow(0)
 
           # add lines from request
           for jskos, key in data
