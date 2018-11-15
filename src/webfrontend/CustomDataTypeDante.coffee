@@ -343,14 +343,9 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                             prefLabelButtons.push button
 
                           # init popover
-                          console.log "newLoaderPanel:"
-                          console.log newLoaderPanel
-                          console.log "input"
-                          console.log input
                           if newLoaderPanel
                             chooseHangElem = newLoaderPanel
                           else
-                            console.log cdata_form
                             chooseHangElem = input
                           chooseLabelPopover = new CUI.Popover
                               element: chooseHangElem
