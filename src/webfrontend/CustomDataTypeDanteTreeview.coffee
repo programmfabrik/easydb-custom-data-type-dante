@@ -12,7 +12,7 @@ class DANTE_ListViewTree
     #############################################################################
     # construct
     #############################################################################
-    constructor: (@popover = null, @cdata = null, @cdata_form = null, @context = null) ->
+    constructor: (@popover = null, @editor_layout = null, @cdata = null, @cdata_form = null, @context = null, @dante_opts = {}) ->
 
         options =
           class: "dantePlugin_Treeview"
@@ -22,7 +22,7 @@ class DANTE_ListViewTree
           no_hierarchy : false
 
         that = @
-
+        
         treeview = new CUI.ListViewTree(options)
         treeview.render()
         treeview.root.open()
@@ -45,7 +45,7 @@ class DANTE_ListViewTree
     # get top hierarchy
     #############################################################################
     getTopTreeView: (vocName, cache=1) ->
-
+        
         dfr = new CUI.Deferred()
 
         that = @
@@ -83,6 +83,8 @@ class DANTE_ListViewTree
                 cdata_form: that.cdata_form
                 guideTerm: DANTE_ListViewTreeNode.prototype.isGuideTerm(jskos)
                 context: that.context
+                dante_opts: that.dante_opts
+                editor_layout: that.editor_layout
 
             that.treeview.addNode(newNode)
           # refresh popup, because its content has changed (new height etc)
@@ -203,6 +205,8 @@ class DANTE_ListViewTree
                   cdata: that.cdata
                   cdata_form: that.cdata_form
                   context: that.context
+                  dante_opts: that.dante_opts
+                  editor_layout: that.editor_layout
 
               nodes.push(newNode)
             return nodes
@@ -234,6 +238,8 @@ class DANTE_ListViewTree
                 cdata: that.cdata
                 cdata_form: that.cdata_form
                 context: that.context
+                dante_opts: that.dante_opts
+                editor_layout: that.editor_layout
 
             that.treeview.addNode(newNode)
 
@@ -266,7 +272,9 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
         @cdata = @additionalOpts.cdata
         @cdata_form = @additionalOpts.cdata_form
         @context = @additionalOpts.context
-
+        @dante_opts = @additionalOpts.dante_opts
+        @editor_layout = @additionalOpts.editor_layout
+        
     #########################################
     # function isGuideTerm
     isGuideTerm: (jskos) =>
@@ -315,6 +323,8 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
                 cdata_form: that.cdata_form
                 guideTerm: that.isGuideTerm(jskos)
                 context: that.context
+                dante_opts: that.dante_opts
+                editor_layout: that.editor_layout
             children.push(newNode)
           dfr.resolve(children)
         )
@@ -354,14 +364,44 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
                             tooltip:
                               text: tooltipText
                             onClick: =>
-                              # attach info to cdata_form
-                              that.cdata.conceptName = that.prefLabel
-                              that.cdata.conceptURI = that.uri
-                              # trigger change on form
-                              that.cdata_form.getFieldsByName("searchbarInput")[0].storeValue(that.prefLabel + ' teee222st')     
-                                
-                              # hide popover
-                              that.popover.hide()
+                              # get the ancestors and labels for fulltext
+                              
+                              # cache?
+                              cache = '&cache=0'
+                              if that.context.resettedPopup
+                                  cache = '&cache=1'
+                                  
+                              suggestAPIPath = location.protocol + '//api.dante.gbv.de/data?uri=' + that.uri + cache + '&properties=+ancestors'
+                              
+                              # start suggest-XHR
+                              dataEntry_xhr = new (CUI.XHR)(url: suggestAPIPath)
+                              dataEntry_xhr.start().done((data_suggest, status, statusText) ->
+                                resultJSKOS = data_suggest[0];
+                                # if treeview, add ancestors
+                                that.cdata.conceptAncestors = []
+                                if resultJSKOS.ancestors.length > 0
+                                  # save ancestor-uris to cdata
+                                  for jskos in resultJSKOS.ancestors
+                                    that.cdata.conceptAncestors.push jskos.uri
+                                # add own uri to ancestor-uris
+                                that.cdata.conceptAncestors.push that.uri
+                                  
+                                # is user allowed to choose label manually from list and not in expert-search?!
+                                if that.context?.FieldSchema?.custom_settings?.allow_label_choice?.value == true && that.dante_opts?.mode == 'editor'
+                                  CustomDataTypeDANTE.prototype.__chooseLabelManually(that.cdata, that.editor_layout, resultJSKOS, that.editor_layout, that.dante_opts)
+
+                                # attach info to cdata_form
+                                that.cdata.conceptName = that.prefLabel
+                                that.cdata.conceptURI = that.uri
+                                # also save fulltext
+                                that.cdata.conceptFulltext = CustomDataTypeDANTE.prototype.__getFulltextFromJSKOS resultJSKOS
+
+                                # update form
+                                CustomDataTypeDANTE.prototype.__updateResult(that.cdata, that.editor_layout, that.dante_opts)
+                                # hide popover
+                                that.popover.hide()
+                              )
+
 
         # add '+'-Button, if not guideterm
         plusButton.setEnabled(!that.guideTerm)
