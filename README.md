@@ -20,6 +20,19 @@ As defined in `CustomDataTypeDante.config.yml` this datatype can be configured:
 * whether to use the cache
 * whether to use default values
 
+## saved data
+* conceptName
+    * Preferred label of the linked record
+* conceptURI
+    * URI to linked record
+* conceptFulltext
+    * fulltext-string which contains: PrefLabels, AltLabels, HiddenLabels, Notations
+* conceptAncestors
+    * URI's of all given ancestors
+* _fulltext
+    * easydb-fulltext
+* _standard
+    * easydb-standard
 ## sources
 
 The source code of this plugin is managed in a git repository at <https://github.com/programmfabrik/easydb-custom-data-type-dante>. Please use [the issue tracker](https://github.com/programmfabrik/easydb-custom-data-type-dante/issues) for bug reports and feature requests!
