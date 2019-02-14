@@ -19,7 +19,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     if ! xreturn
       xreturn = 'gender'
     xreturn
-    
+
   #######################################################################
   # render popup as treeview?
   renderPopupAsTreeview: ->
@@ -185,8 +185,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
           bottom: null
       chooseLabelPopover.setContent(chooseLabelContent)
       chooseLabelPopover.show()
-  
-  
+
+
   #######################################################################
   # handle suggestions-menu  (POPOVER)
   #######################################################################
@@ -363,7 +363,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
                   # if treeview in popup also get the ancestors
                   ancestors = '';
-                  if that.renderPopupAsTreeview() && ! that.popover 
+                  if that.renderPopupAsTreeview() && ! that.popover
                     ancestors = '&properties=+ancestors'
 
                   # get full record to get correct preflabel in desired language
@@ -556,7 +556,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                       fulltext_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + cdata.conceptURI + '&cache=1&properties=+altLabel,hiddenLabel,notation')
                       fulltext_xhr.start().done((fulltext_data, status, statusText) ->
                           cdata.conceptFulltext = that.__getFulltextFromJSKOS fulltext_data
-                          
+
                           # set data to global-var, needed for expert-search
                           data[that.name()] = cdata
                           CUI.Events.trigger
@@ -569,24 +569,24 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         cdata_form.getFieldsByName("dante_InlineSelect")[0].disable()
 
         cdata_form
-        
-        
+
+
   #######################################################################
   # get fulltextstring from given jskos
   __getFulltextFromJSKOS: (fdata) ->
       fString = '';
       if Array.isArray(fdata)
         fdata = fdata[0]
-      
-      if fdata.prefLabel
+
+      if fdata?.prefLabel
         for prefLng, prefLabel of fdata.prefLabel
           fString = fString + ' ' + prefLabel
-          
-      if fdata.altLabel
+
+      if fdata?.altLabel
         for altLng, altLabel of fdata.altLabel
           fString = fString + ' ' + altLabel
-          
-      if fdata.notation
+
+      if fdata?.notation
         for notation in fdata.notation
           fString = fString + ' ' + notation
 
