@@ -48,7 +48,7 @@ custom_types:
           parameters:
             value:
               type: bool
-        - name: default_concept_uuid
+        - name: default_concept_uri
           parameters:
             value:
               type: text

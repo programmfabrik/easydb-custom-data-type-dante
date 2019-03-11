@@ -33,6 +33,7 @@ As defined in `CustomDataTypeDante.config.yml` this datatype can be configured:
     * easydb-fulltext
 * _standard
     * easydb-standard
+
 ## sources
 
 The source code of this plugin is managed in a git repository at <https://github.com/programmfabrik/easydb-custom-data-type-dante>. Please use [the issue tracker](https://github.com/programmfabrik/easydb-custom-data-type-dante/issues) for bug reports and feature requests!
