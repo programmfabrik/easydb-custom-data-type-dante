@@ -30,7 +30,7 @@ custom.data.type.dante.config.parameter.mask.use_cache.value.label,Cache,Cache
 custom.data.type.dante.config.parameter.mask.hide_result_info.value.checkbox,Anzeige des Ergebnisses verstecken (empfohlen bei Nutzung des Dropdowns!),Hide results (when using dropdown)
 custom.data.type.dante.config.parameter.mask.hide_result_info.value.label,Ergebnis verstecken,Hide result
 custom.data.type.dante.config.parameter.schema.vocabulary_name.value.label,DANTE-Vokabular-ID (aus https://api.dante.gbv.de/voc),Name of vocabulary (see http://uri.gbv.de/terminology/)
-custom.data.type.dante.config.parameter.mask.default_concept_uuid.value.label,"Standard-URI""",Standard-URI
+custom.data.type.dante.config.parameter.mask.default_concept_uri.value.label,"Standard-URI""",Standard-URI
 custom.data.type.dante.config.parameter.mask.default_concept_name.value.label,"Standard-Name""",Standard-Name
 custom.data.type.dante.setting.schema.no_choosen_vocabulary,Kein DANTE-Vokabular hinterlegt,No DANTE-Vocabulary set
 custom.data.type.dante.config.parameter.mask.use_tree_view.value.checkbox,Baumansicht zum Navigieren,Treeview (only for Popup-Mode)
