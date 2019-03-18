@@ -39,7 +39,7 @@ custom_types:
           parameters:
             value:
               type: select
-              options: ["dropdown", "popover", "popover_with_treeview"]
+              options: ["popover", "popover_with_treeview", "dropdown"]
         - name: use_cache
           parameters:
             value:
