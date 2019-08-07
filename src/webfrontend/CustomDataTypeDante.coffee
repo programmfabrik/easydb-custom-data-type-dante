@@ -5,6 +5,32 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   getCustomDataTypeName: ->
     "custom:base.custom-data-type-dante.dante"
 
+  #######################################################################
+  # overwrite getCustomMaskSettings
+  getCustomMaskSettings: ->
+    if @ColumnSchema
+      return @FieldSchema.custom_settings || {};
+    else
+      return {}
+
+  #######################################################################
+  # overwrite getCustomSchemaSettings
+  getCustomSchemaSettings: ->
+    if @ColumnSchema
+      return @ColumnSchema.custom_settings || {};
+    else
+      return {}
+
+  #######################################################################
+  # overwrite getCustomSchemaSettings
+  name: (opts = {}) ->
+    if ! @ColumnSchema
+      if opts?.callfrompoolmanager && opts?.name != ''
+        return opts.name
+      else
+        return "noNameSet"
+    else
+      return @ColumnSchema?.name
 
   #######################################################################
   # return name (l10n) of plugin
@@ -14,9 +40,13 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
   #######################################################################
   # returns name of the given vocabulary from datamodel
-  getVocabularyNameFromDatamodel: ->
+  getVocabularyNameFromDatamodel: (opts = {}) ->
     xreturn = @getCustomSchemaSettings().vocabulary_name?.value
     if ! xreturn
+      # maybe the call is from poolmanagerplugin?
+      if opts?.callfrompoolmanager
+        if opts?.voc
+          return opts?.voc
       xreturn = 'gender'
     xreturn
 
@@ -228,6 +258,9 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
         # voc parameter
         vocParameter = that.getActiveVocabularyName(cdata)
+        # voc parameter if called from poolmanagerplugin
+        if opts?.callfrompoolmanager
+          vocParameter = that.getVocabularyNameFromDatamodel(opts)
 
         # start request
         searchsuggest_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/suggest?search=' + dante_searchstring + '&voc=' + vocParameter + '&language=' + that.getFrontendLanguage() + '&limit=' + dante_countSuggestions + cache)
@@ -363,7 +396,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
                   # if treeview in popup also get the ancestors
                   ancestors = '';
-                  if that.renderPopupAsTreeview() && ! that.popover
+                  #if that.renderPopupAsTreeview() && ! that.popover
+                  if that.renderPopupAsTreeview()
                     ancestors = '&properties=+ancestors'
 
                   # get full record to get correct preflabel in desired language
@@ -376,7 +410,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                     cdata.conceptAncestors = []
                     # if treeview, add ancestors
                     if that.renderPopupAsTreeview()
-                      if resultJSKOS.ancestors?.length > 0
+                      if resultJSKOS?.ancestors?.length > 0
                         # save ancestor-uris to cdata
                         for jskos in resultJSKOS.ancestors
                           cdata.conceptAncestors.push jskos.uri
@@ -435,24 +469,40 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   renderEditorInput: (data, top_level_data, opts) ->
     #console.error @, data, top_level_data, opts, @name(), @fullName()
 
-    if not data[@name()]
-        cdata = {
-            conceptName : ''
-            conceptURI : ''
-        }
-        # if default values are set in masksettings
-        if @getCustomMaskSettings().default_concept_uri?.value && @getCustomMaskSettings().default_concept_name?.value
-            cdata = {
-                conceptName : @getCustomMaskSettings().default_concept_name?.value
-                conceptURI : @getCustomMaskSettings().default_concept_uri?.value
-            }
-        data[@name()] = cdata
+    # if not called from poolmanagerplugin
+    if ! opts?.callfrompoolmanager
+      if not data[@name()]
+          cdata = {
+              conceptName : ''
+              conceptURI : ''
+          }
+          # if default values are set in masksettings
+          if @getCustomMaskSettings().default_concept_uri?.value && @getCustomMaskSettings().default_concept_name?.value
+              cdata = {
+                  conceptName : @getCustomMaskSettings().default_concept_name?.value
+                  conceptURI : @getCustomMaskSettings().default_concept_uri?.value
+              }
+          data[@name()] = cdata
+      else
+          cdata = data[@name()]
+    # if called from poolmanagerplugin
     else
-        cdata = data[@name()]
+        cdata = data[@name(opts)]
+        if ! cdata?.conceptURI
+          cdata = {}
 
     # inline or popover?
-    if @getCustomMaskSettings().editor_style?.value == 'dropdown'
-        @__renderEditorInputInline(data, cdata)
+    dropdown = false
+    if opts?.editorstyle
+      editorStyle = opts.editorstyle
+    else
+      if @getCustomMaskSettings().editor_style?.value == 'dropdown'
+        editorStyle = 'dropdown'
+      else
+        editorStyle = 'popup'
+
+    if editorStyle == 'dropdown'
+        @__renderEditorInputInline(data, cdata, opts)
     else
         @__renderEditorInputPopover(data, cdata, opts)
 
@@ -470,7 +520,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
   #######################################################################
   # render form as DROPDOWN
-  __renderEditorInputInline: (data, cdata) ->
+  __renderEditorInputInline: (data, cdata, opts = {}) ->
         that = @
 
         fields = []
@@ -485,16 +535,16 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
                   # cache on?
                   cache = '&cache=0'
-                  if @getCustomMaskSettings().use_cache?.value
+                  if @getCustomMaskSettings()?.use_cache?.value
                       cache = '&cache=1'
 
                   # if multible vocabularys are given, show only the first one in dropdown
-                  vocTest = @getVocabularyNameFromDatamodel()
+                  vocTest = @getVocabularyNameFromDatamodel(opts)
                   vocTest = vocTest.split('|')
                   if(vocTest.length > 1)
                     voc = vocTest[0]
                   else
-                    voc = @getVocabularyNameFromDatamodel()
+                    voc = @getVocabularyNameFromDatamodel(opts)
 
                   # start new request
                   searchsuggest_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/suggest?search=&voc=' + voc + '&language=' + @getFrontendLanguage() + '&limit=1000' + cache)
@@ -540,6 +590,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
             name: 'dante_InlineSelect'
         }
+
         fields.push select
         if cdata.length == 0
           cdata = {}
@@ -556,20 +607,19 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                       fulltext_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + cdata.conceptURI + '&cache=1&properties=+altLabel,hiddenLabel,notation')
                       fulltext_xhr.start().done((fulltext_data, status, statusText) ->
                           cdata.conceptFulltext = that.__getFulltextFromJSKOS fulltext_data
-
-                          # set data to global-var, needed for expert-search
-                          data[that.name()] = cdata
+                          if ! cdata?.conceptURI
+                            cdata = {}
+                          data[that.name(opts)] = cdata
+                          data.lastsaved = Date.now()
                           CUI.Events.trigger
                                   node: element
                                   type: "editor-changed"
                       )
-
                 fields: fields
         .start()
         cdata_form.getFieldsByName("dante_InlineSelect")[0].disable()
 
         cdata_form
-
 
   #######################################################################
   # get fulltextstring from given jskos
@@ -696,8 +746,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
     # init xhr-object to abort running xhrs
     searchsuggest_xhr = { "xhr" : undefined }
-
     cdata_form = new CUI.Form
+      class: "danteFormWithPadding"
       data: cdata
       fields: that.__getEditorFields(cdata)
       onDataChanged: (data, elem) =>
@@ -816,7 +866,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                       right:
                           content:
                               new CUI.EmptyLabel
-                                text: that.getVocabularyNameFromDatamodel()
+                                text: that.getVocabularyNameFromDatamodel(opts)
               ]
           center:
               content: [
