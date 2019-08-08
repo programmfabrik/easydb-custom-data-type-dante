@@ -471,7 +471,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
     # if not called from poolmanagerplugin
     if ! opts?.callfrompoolmanager
-      console.log "not called from poolmanager"
       if not data[@name()]
           cdata = {
               conceptName : ''
@@ -612,10 +611,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                             cdata = {}
                           data[that.name(opts)] = cdata
                           data.lastsaved = Date.now()
-                          #if opts?.callfrompoolmanager
-                            #console.log opts.data
-                            #opts.data = data
-                            #console.error opts.data
                           CUI.Events.trigger
                                   node: element
                                   type: "editor-changed"
@@ -751,13 +746,11 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
     # init xhr-object to abort running xhrs
     searchsuggest_xhr = { "xhr" : undefined }
-    console.log data
     cdata_form = new CUI.Form
       class: "danteFormWithPadding"
       data: cdata
       fields: that.__getEditorFields(cdata)
       onDataChanged: (data, elem) =>
-        console.warn "onDataChanged in showEditPopover"
         that.__updateResult(cdata, layout, opts)
         # update tree, if voc changed
         if elem.opts.name == 'dante_PopoverVocabularySelect' && that.renderPopupAsTreeview()
