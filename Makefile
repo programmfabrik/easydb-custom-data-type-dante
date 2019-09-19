@@ -10,6 +10,7 @@ INSTALL_FILES = \
 	$(WEB)/l10n/cultures.json \
 	$(WEB)/l10n/de-DE.json \
 	$(WEB)/l10n/en-US.json \
+	build/updater/dante-update.js \
 	$(JS) \
 	$(CSS) \
 	CustomDataTypeDante.config.yml
@@ -24,21 +25,33 @@ MAPBOX2 = src/external/geo-viewport.js
 COFFEE_FILES = easydb-library/src/commons.coffee \
 	src/webfrontend/CustomDataTypeDante.coffee \
   src/webfrontend/CustomDataTypeDanteParseJSKOS.coffee \
+	src/webfrontend/DANTEUtil.coffee \
   src/webfrontend/CustomDataTypeDanteTreeview.coffee
 
-SCSS_FILES = src/webfrontend/scss/main.scss
+CSS_FILE = src/webfrontend/css/main.css
+
+UPDATE_SCRIPT_COFFEE_FILES = \
+	src/webfrontend/DANTEUtil.coffee #\
+	#src/updater/DANTEUpdate.coffee
+
 
 all: build
 
 include easydb-library/tools/base-plugins.make
 
-build: code css
+build: code #buildupdater
 
 code: $(subst .coffee,.coffee.js,${COFFEE_FILES}) $(L10N)
 	mkdir -p build
 	mkdir -p build/webfrontend
 	cat $^ > build/webfrontend/custom-data-type-dante.js
 	cat $(MAPBOX1) $(MAPBOX2) >> build/webfrontend/custom-data-type-dante.js
+	mkdir -p build/webfrontend/css
+	cat $(CSS_FILE) >> build/webfrontend/custom-data-type-dante.css
+
+#buildupdater: $(subst .coffee,.coffee.js,${UPDATE_SCRIPT_COFFEE_FILES})
+#	mkdir -p build/updater
+#	cat $^ > build/updater/dante-update.js
 
 clean: clean-base
 

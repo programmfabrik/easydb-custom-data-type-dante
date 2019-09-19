@@ -964,12 +964,13 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
       left:
         content:
           new CUI.Label
-            centered: true
+            centered: false
             text: cdata.conceptName
       center:
         content:
           new CUI.ButtonHref
             name: "outputButtonHref"
+            class: "pluginResultButton"
             appearance: "link"
             size: "normal"
             href: 'https://uri.gbv.de/terminology/?uri=' + encodedURI
