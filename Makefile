@@ -10,10 +10,11 @@ INSTALL_FILES = \
 	$(WEB)/l10n/cultures.json \
 	$(WEB)/l10n/de-DE.json \
 	$(WEB)/l10n/en-US.json \
-	build/updater/dante-update.js \
 	$(JS) \
 	$(CSS) \
 	CustomDataTypeDante.config.yml
+
+#FIXME build/updater/dante-update.js \
 
 # XXX: missing languages, so the following files are not installable
 #	$(WEB)/l10n/es-ES.json \
