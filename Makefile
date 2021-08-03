@@ -11,7 +11,7 @@ INSTALL_FILES = \
 	$(WEB)/l10n/en-US.json \
 	$(JS) \
 	$(CSS) \
-	CustomDataTypeDante.config.yml
+	manifest.yml
 
 #FIXME build/updater/dante-update.js \
 
