@@ -76,6 +76,33 @@ CustomDataTypeDANTE.prototype.getJSKOSPreview = (data, mapbox_access_token = fal
   if notations
     html += '<h4>' + $$('custom.data.type.dante.modal.form.popup.jskospreview.notations') + '</h4>' + notations
 
+  # startDate + startPlace
+  startPlaces = []
+  if data.startDate || data.startPlace
+    html += '<h4>' + $$('custom.data.type.dante.modal.form.popup.jskospreview.startDate') + '</h4>'
+    if data.startDate
+      html += data.startDate + '<br />'
+    if data.startPlace
+      for key, val of data.startPlace
+        startPlaces.push ' &#8226; ' + val.prefLabel.und
+      startPlaces = startPlaces.filter((item, i, ar) ->
+        ar.indexOf(item) == i
+      )
+      html += startPlaces.join('<br />')
+
+  # endDate + endPlace
+  endPlaces = []
+  if data.endDate || data.endPlace
+    html += '<h4>' + $$('custom.data.type.dante.modal.form.popup.jskospreview.endDate') + '</h4>'
+    if data.endDate
+      html += data.endDate + '<br />'
+    if data.endPlace
+      for key, val of data.endPlace
+        endPlaces.push ' &#8226; ' + val.prefLabel.und
+      endPlaces = endPlaces.filter (item, i, ar) ->
+        ar.indexOf(item) == i
+      html += endPlaces.join('<br />')
+
   # Depiction
   if data.depiction
     depictionPreview = ''

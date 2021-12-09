@@ -76,13 +76,13 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
   #######################################################################
   # returns markup to display in expert search
-  # see f.e. for tags:
-  #   --> https://github.com/programmfabrik/easydb-webfrontend/blob/59d35445c532bbfa2f87edb1584526123593dc2f/src/shared/Fields/TagsField.coffee#L380
   #######################################################################
-  renderSearchInput: (data) ->
+  renderSearchInput: (data, opts) ->
       that = @
       if not data[@name()]
           data[@name()] = {}
+
+      that.callFromExpertSearch = true
 
       form = @renderEditorInput(data, '', {})
 
@@ -100,9 +100,24 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   #######################################################################
   # make searchfilter for expert-search
   #######################################################################
-  getSearchFilter: (data) ->
+  getSearchFilter: (data, key=@name()) ->
       that = @
-      # popup without tree: use sameas
+
+      objecttype = @path()
+      objecttype = objecttype.split('.')
+      objecttype = objecttype[0]
+
+      # search for empty values
+      if data[key+":unset"]
+          filter =
+              type: "in"
+              fields: [ @fullName()+".conceptName" ]
+              in: [ null ]
+          filter._unnest = true
+          filter._unset_filter = true
+          return filter
+
+      # dropdown or popup without tree: use sameas
       if ! that.renderPopupAsTreeview()
         filter =
             type: "complex"
@@ -110,7 +125,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                 type: "in"
                 bool: "must"
                 fields: [ "_objecttype" ]
-                in: [ @path() ]
+                in: [ objecttype ]
             ,
                 type: "in"
                 mode: "fulltext"
@@ -124,26 +139,51 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
             filter.search[1].in = [data[@name()].conceptURI]
         else
             filter = null
-      # popup with tree: find all records which have the given uri in their ancestors
+
+      # popup with tree: 2 Modes
       if that.renderPopupAsTreeview()
-        filter =
-            type: "complex"
-            search: [
-                type: "in"
-                bool: "must"
-                fields: [ "_objecttype" ]
-                in: [ @path() ]
-            ,
-                type: "in"
-                bool: "must"
-                fields: [ @path() + '.' + @name() + ".conceptAncestors" ]
-            ]
-        if ! data[@name()]
-            filter.search[1].in = [ null ]
-        else if data[@name()]?.conceptURI
-            filter.search[1].in = [data[@name()].conceptURI]
-        else
-            filter = null
+        # 1. find all records which have the given uri in their ancestors
+        if data[key].experthierarchicalsearchmode == 'include_children'
+          filter =
+              type: "complex"
+              search: [
+                  type: "in"
+                  bool: "must"
+                  fields: [ "_objecttype" ]
+                  in: [ objecttype ]
+              ,
+                  type: "in"
+                  bool: "must"
+                  fields: [ @path() + '.' + @name() + ".conceptAncestors" ]
+              ]
+          if ! data[@name()]
+              filter.search[1].in = [ null ]
+          else if data[@name()]?.conceptURI
+              filter.search[1].in = [data[@name()].conceptURI]
+          else
+              filter = null
+        # 1. find all records which have exact that match
+        if data[key].experthierarchicalsearchmode == 'exact'
+          filter =
+              type: "complex"
+              search: [
+                  type: "in"
+                  bool: "must"
+                  fields: [ "_objecttype" ]
+                  in: [ objecttype ]
+              ,
+                  type: "in"
+                  mode: "fulltext"
+                  bool: "must"
+                  phrase: false
+                  fields: [ @path() + '.' + @name() + ".conceptURI" ]
+              ]
+          if ! data[@name()]
+              filter.search[1].in = [ null ]
+          else if data[@name()]?.conceptURI
+              filter.search[1].in = [data[@name()].conceptURI]
+          else
+              filter = null
       filter
 
 
@@ -157,6 +197,11 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
           value = $$("field.search.badge.without")
       else
           value = data[@name()].conceptName
+
+      if data[@name()]?.experthierarchicalsearchmode == 'exact' || data[@name()]?.experthierarchicalsearchmode == 'include_children'
+        searchModeAddition = $$("custom.data.type.dante.modal.form.popup.choose_expertsearchmode_." + data[@name()].experthierarchicalsearchmode + "_short")
+        value = searchModeAddition + ': ' + value
+
 
       name: @nameLocalized()
       value: value
@@ -215,6 +260,38 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
           bottom: null
       chooseLabelPopover.setContent(chooseLabelContent)
       chooseLabelPopover.show()
+
+  #######################################################################
+  # choose search mode for the hierarchical expert search
+  #   ("exact" or "with children")
+  #######################################################################
+  __chooseExpertHierarchicalSearchMode: (cdata,  layout, resultJSKOS, anchor, opts) ->
+      that = @
+
+      ConfirmationDialog = new CUI.ConfirmationDialog
+        text: $$('custom.data.type.dante.modal.form.popup.choose_expertsearchmode_label2') + '\n\n' +  $$('custom.data.type.dante.modal.form.popup.choose_expertsearchmode_label3') + ': ' + cdata.conceptURI +  '\n'
+        title: $$('custom.data.type.dante.modal.form.popup.choose_expertsearchmode_label')
+        icon: "question"
+        cancel: false
+        buttons: [
+          text: $$('custom.data.type.dante.modal.form.popup.choose_expertsearchmode_.exact')
+          onClick: =>
+            # lock choosen searchmode in savedata
+            cdata.experthierarchicalsearchmode = 'exact'
+            # update the layout in form
+            that.__updateResult(cdata, layout, opts)
+            ConfirmationDialog.destroy()
+        ,
+          text: $$('custom.data.type.dante.modal.form.popup.choose_expertsearchmode_.include_children')
+          primary: true
+          onClick: =>
+            # lock choosen searchmode in savedata
+            cdata.experthierarchicalsearchmode = 'include_children'
+            # update the layout in form
+            that.__updateResult(cdata, layout, opts)
+            ConfirmationDialog.destroy()
+        ]
+      ConfirmationDialog.show()
 
 
   #######################################################################
@@ -398,10 +475,10 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                   ancestors = '';
                   #if that.renderPopupAsTreeview() && ! that.popover
                   if that.renderPopupAsTreeview()
-                    ancestors = '&properties=+ancestors'
+                    ancestors = 'ancestors'
 
                   # get full record to get correct preflabel in desired language
-                  suggestAPIPath = location.protocol + '//api.dante.gbv.de/data?uri=' + searchUri + cache + ancestors
+                  suggestAPIPath = location.protocol + '//api.dante.gbv.de/data?uri=' + searchUri + cache + '&properties=+hiddenLabel,notation,scopeNote,definition,identifier,example,location,depiction,startDate,endDate,startPlace,endPlace' + ancestors
 
                   # start suggest-XHR
                   dataEntry_xhr = new (CUI.XHR)(url: suggestAPIPath)
@@ -420,8 +497,9 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                     if resultJSKOS.uri
                       # lock conceptURI in savedata
                       cdata.conceptURI = resultJSKOS.uri
-                      # lock conceptFulltext in savedata
-                      cdata.conceptFulltext = that.__getFulltextFromJSKOS resultJSKOS
+                      # lock _fulltext in savedata
+                      cdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject resultJSKOS
+                      cdata._standard = ez5.DANTEUtil.getStandardFromJSKOSObject resultJSKOS
 
                       # is user allowed to choose label manually from list and not in expert-search?!
                       if that.getCustomMaskSettings().allow_label_choice?.value && opts?.mode == 'editor'
@@ -481,6 +559,12 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
               cdata = {
                   conceptName : @getCustomMaskSettings().default_concept_name?.value
                   conceptURI : @getCustomMaskSettings().default_concept_uri?.value
+                  # TODO TODO TODO
+                  _fulltext : {}
+                  # TODO TODO TODO
+                  _standard : {}
+                  # TODO TODO TODO
+                  conceptAncestors: []
               }
           data[@name()] = cdata
       else
@@ -511,9 +595,12 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   # get frontend-language
   getFrontendLanguage: () ->
     # language
-    desiredLanguage = ez5.loca.getLanguage()
-    desiredLanguage = desiredLanguage.split('-')
-    desiredLanguage = desiredLanguage[0]
+    desiredLanguage = ez5?.loca?.getLanguage()
+    if desiredLanguage
+      desiredLanguage = desiredLanguage.split('-')
+      desiredLanguage = desiredLanguage[0]
+    else
+      desiredLanguage = false
 
     desiredLanguage
 
@@ -604,9 +691,10 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                       cdata.conceptName = element.getText()
                       cdata.conceptAncestors = []
                       # download data from dante for fulltext
-                      fulltext_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + cdata.conceptURI + '&cache=1&properties=+altLabel,hiddenLabel,notation')
-                      fulltext_xhr.start().done((fulltext_data, status, statusText) ->
-                          cdata.conceptFulltext = that.__getFulltextFromJSKOS fulltext_data
+                      fulltext_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + cdata.conceptURI + '&cache=1&properties=+ancestors,hiddenLabel,notation,scopeNote,definition,identifier,example,location,depiction,startDate,endDate,startPlace,endPlace')
+                      fulltext_xhr.start().done((detail_data, status, statusText) ->
+                          cdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject detail_data
+                          cdata._standard= ez5.DANTEUtil.getStandardFromJSKOSObject detail_data
                           if ! cdata?.conceptURI
                             cdata = {}
                           data[that.name(opts)] = cdata
@@ -620,28 +708,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         cdata_form.getFieldsByName("dante_InlineSelect")[0].disable()
 
         cdata_form
-
-  #######################################################################
-  # get fulltextstring from given jskos
-  __getFulltextFromJSKOS: (fdata) ->
-      fString = '';
-      if Array.isArray(fdata)
-        fdata = fdata[0]
-
-      if fdata?.prefLabel
-        for prefLng, prefLabel of fdata.prefLabel
-          fString = fString + ' ' + prefLabel
-
-      if fdata?.altLabel
-        for altLng, altLabel of fdata.altLabel
-          fString = fString + ' ' + altLabel
-
-      if fdata?.notation
-        for notation in fdata.notation
-          fString = fString + ' ' + notation
-
-      fString
-
 
   #######################################################################
   # show tooltip with loader and then additional info (for extended mode)
@@ -658,7 +724,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     if that.getCustomSchemaSettings().mapbox_access_token?.value
       mapbox_access_token = that.getCustomSchemaSettings().mapbox_access_token.value
     # start new request to DANTE-API
-    extendedInfo_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + uri + '&format=json&properties=+ancestors,hiddenLabel,notation,scopeNote,definition,identifier,example,location,depiction&cache=1')
+    extendedInfo_xhr.xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + uri + '&format=json&properties=+ancestors,hiddenLabel,notation,scopeNote,definition,identifier,example,location,depiction,startDate,endDate,startPlace,endPlace&cache=1')
     extendedInfo_xhr.xhr.start()
     .done((data, status, statusText) ->
       htmlContent = that.getJSKOSPreview(data, mapbox_access_token)
@@ -671,6 +737,12 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   #######################################################################
   # build treeview-Layout with treeview
   buildAndSetTreeviewLayout: (popover, layout, cdata, cdata_form, that, topMethod = 0, returnDfr = false, opts) ->
+    # is this a call from expert-search? --> save in opts..
+    if @?.callFromExpertSearch
+      opts.callFromExpertSearch = @.callFromExpertSearch
+    else
+      opts.callFromExpertSearch = false
+
     treeview = new DANTE_ListViewTree(popover, layout, cdata, cdata_form, that, opts)
     if topMethod
       # get vocparameter from dropdown, if available...
@@ -986,7 +1058,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                 new CUI.Label(icon: "spinner", text: $$('custom.data.type.dante.modal.form.popup.loadingstring'))
       right: null
     .DOM
-
 
   #######################################################################
   # zeige die gewählten Optionen im Datenmodell unter dem Button an

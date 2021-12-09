@@ -55,6 +55,8 @@ custom.data.type.dante.modal.form.popup.jskospreview.definition,Definition,Defin
 custom.data.type.dante.modal.form.popup.jskospreview.scopenote,Verwendungshinweis,ScopeNote
 custom.data.type.dante.modal.form.popup.jskospreview.example,Beispiel,Example
 custom.data.type.dante.modal.form.popup.jskospreview.depiction,Bilder,Depiction
+custom.data.type.dante.modal.form.popup.jskospreview.endDate,Daseinsende,End of existence
+custom.data.type.dante.modal.form.popup.jskospreview.startDate,Daseinsbeginn,Beginning of existence
 custom.data.type.dante.config.parameter.schema.mapbox_access_token.value.label,Mapbox-Access-Token (Kartenanzeige),Mapbox-Access-Token (display maps)
 custom.data.type.dante.modal.form.dropdown.loadingentries,Einträge werden geladen ..,loading entries ..
 custom.data.type.dante.modal.form.dropdown.choose,auswählen ..,choose ..
@@ -63,3 +65,17 @@ custom.data.type.dante.modal.form.dropdown.choosefromvocall,Alle erlaubten Vokab
 custom.data.type.dante.config.parameter.mask.allow_label_choice.value.label,Erlaube die händische Auswahl aus den gegebenen Labels,Allow manual choice from available labels
 custom.data.type.dante.config.parameter.mask.allow_label_choice.value.checkbox,Erlaubt,Allowed
 custom.data.type.dante.modal.form.popup.choose_manual_label,Auswahl eines Labels, Choose a label
+custom.data.type.dante.modal.form.popup.choose_expertsearchmode_.exact,Exakt diese Auswahl,Exact this selection
+custom.data.type.dante.modal.form.popup.choose_expertsearchmode_.include_children,Auch Kinder einbeziehen,Include children too
+custom.data.type.dante.modal.form.popup.choose_expertsearchmode_.exact_short,Exakt,Exact
+custom.data.type.dante.modal.form.popup.choose_expertsearchmode_.include_children_short,Auch Kinder,Include children,
+custom.data.type.dante.modal.form.popup.choose_expertsearchmode_label,Suchmodus für Expertensuche wählen,Select search mode for expert search,
+custom.data.type.dante.modal.form.popup.choose_expertsearchmode_label2,Was wollen Sie finden? Nur exakte Treffer oder auch alle Kinder und Kindeskinder ihrer Suchauswahl?,What do you want to find? Only exact hits or also all children and grandchildren in your search selection?,
+custom.data.type.dante.modal.form.popup.choose_expertsearchmode_label3,Ausgewählt,Selected,
+server.config.name.system.update_interval_dante,DANTE-Update-Einstellungen,DANTE-Update-Configuration
+server.config.parameter.system.update_interval_dante.days.label,Tage zwischen Updates,Days between updates
+server.config.parameter.system.update_interval_dante.dev_api.label,Nutze Beta-API,Use beta-API
+server.config.parameter.system.update_interval_dante.dev_api.checkbox,Aktiviere Entwicklungs-API,Activate Development-API
+server.config.parameter.system.update_interval_dante.test_api.label,Teste API,Test API
+server.config.parameter.system.update_interval_dante.test_api.checkbox,Teste die API vor dem Update,Test API before update
+server.config.parameter.system.update_interval_dante.default_language.label,Standard-Datensprache als Fallback für Update (ISO 639-1),Default-data-language (as fallback) for update (ISO 639-1)

@@ -22,7 +22,7 @@ class DANTE_ListViewTree
           no_hierarchy : false
 
         that = @
-        
+
         treeview = new CUI.ListViewTree(options)
         treeview.render()
         treeview.root.open()
@@ -45,7 +45,7 @@ class DANTE_ListViewTree
     # get top hierarchy
     #############################################################################
     getTopTreeView: (vocName, cache=1) ->
-        
+
         dfr = new CUI.Deferred()
 
         that = @
@@ -263,7 +263,7 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
 
     constructor: (@opts={}, @additionalOpts={}) ->
 
-        super(@opts)
+        super()
 
         @prefLabel = @additionalOpts.prefLabel
         @uri = @additionalOpts.uri
@@ -274,7 +274,7 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
         @context = @additionalOpts.context
         @dante_opts = @additionalOpts.dante_opts
         @editor_layout = @additionalOpts.editor_layout
-        
+
     #########################################
     # function isGuideTerm
     isGuideTerm: (jskos) =>
@@ -365,14 +365,14 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
                               text: tooltipText
                             onClick: =>
                               # get the ancestors and labels for fulltext
-                              
+
                               # cache?
                               cache = '&cache=0'
                               if that.context.resettedPopup
                                   cache = '&cache=1'
-                                  
+
                               suggestAPIPath = location.protocol + '//api.dante.gbv.de/data?uri=' + that.uri + cache + '&properties=+ancestors'
-                              
+
                               # start suggest-XHR
                               dataEntry_xhr = new (CUI.XHR)(url: suggestAPIPath)
                               dataEntry_xhr.start().done((data_suggest, status, statusText) ->
@@ -385,7 +385,7 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
                                     that.cdata.conceptAncestors.push jskos.uri
                                 # add own uri to ancestor-uris
                                 that.cdata.conceptAncestors.push that.uri
-                                  
+
                                 # is user allowed to choose label manually from list and not in expert-search?!
                                 if that.context?.FieldSchema?.custom_settings?.allow_label_choice?.value == true && that.dante_opts?.mode == 'editor'
                                   CustomDataTypeDANTE.prototype.__chooseLabelManually(that.cdata, that.editor_layout, resultJSKOS, that.editor_layout, that.dante_opts)
@@ -393,8 +393,14 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
                                 # attach info to cdata_form
                                 that.cdata.conceptName = that.prefLabel
                                 that.cdata.conceptURI = that.uri
-                                # also save fulltext
-                                that.cdata.conceptFulltext = CustomDataTypeDANTE.prototype.__getFulltextFromJSKOS resultJSKOS
+                                # save _fulltext
+                                that.cdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject resultJSKOS
+                                # save _standard
+                                that.cdata._standard = ez5.DANTEUtil.getStandardFromJSKOSObject resultJSKOS
+
+                                # is this from exact search and user has to choose exact-search-mode?!
+                                if that.dante_opts?.callFromExpertSearch == true
+                                  CustomDataTypeDANTE.prototype.__chooseExpertHierarchicalSearchMode(that.cdata, that.editor_layout, resultJSKOS, that.editor_layout, that.dante_opts)
 
                                 # update form
                                 CustomDataTypeDANTE.prototype.__updateResult(that.cdata, that.editor_layout, that.dante_opts)

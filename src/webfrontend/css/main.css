@@ -36,3 +36,8 @@
      max-height: 500px
      overflow-y: auto
 }
+
+.dantePluginChooseExpertSearchModeButtonWrapper {
+  display: block !important;
+  margin: 60px auto;
+}

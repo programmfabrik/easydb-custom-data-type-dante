@@ -17,6 +17,11 @@ plugin:
     css: custom-data-type-dante.css
 custom_types:
   dante:
+    update:
+      script: build/updater/dante-update.js
+      timeout: 60
+      batch_size: 100
+      interval_base_config: update_interval_dante.days
     mapping:
       conceptName:
         type: text
@@ -56,3 +61,16 @@ custom_types:
           parameters:
             value:
               type: text
+base_config:
+  - name: update_interval_dante
+    group: update_custom_data_type
+    parameters:
+      days:
+        type: int
+        min: 0
+        default: 0
+        position: 0
+      default_language:
+        type: text
+        default: 'de'
+        position: 1
