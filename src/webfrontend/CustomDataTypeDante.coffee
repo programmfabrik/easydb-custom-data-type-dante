@@ -96,6 +96,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
       form.DOM
 
+  needsDirectRender: ->
+    return true
 
   #######################################################################
   # make searchfilter for expert-search
