@@ -690,19 +690,20 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                       element.displayValue()
                       cdata.conceptName = element.getText()
                       cdata.conceptAncestors = []
-                      # download data from dante for fulltext
-                      fulltext_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + cdata.conceptURI + '&cache=1&properties=+ancestors,hiddenLabel,notation,scopeNote,definition,identifier,example,location,depiction,startDate,endDate,startPlace,endPlace')
-                      fulltext_xhr.start().done((detail_data, status, statusText) ->
-                          cdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject detail_data
-                          cdata._standard= ez5.DANTEUtil.getStandardFromJSKOSObject detail_data
-                          if ! cdata?.conceptURI
-                            cdata = {}
-                          data[that.name(opts)] = cdata
-                          data.lastsaved = Date.now()
-                          CUI.Events.trigger
-                                  node: element
-                                  type: "editor-changed"
-                      )
+                      if cdata.conceptURI != null
+                        # download data from dante for fulltext
+                        fulltext_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + cdata.conceptURI + '&cache=1&properties=+ancestors,hiddenLabel,notation,scopeNote,definition,identifier,example,location,depiction,startDate,endDate,startPlace,endPlace')
+                        fulltext_xhr.start().done((detail_data, status, statusText) ->
+                            cdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject detail_data
+                            cdata._standard= ez5.DANTEUtil.getStandardFromJSKOSObject detail_data
+                            if ! cdata?.conceptURI
+                              cdata = {}
+                            data[that.name(opts)] = cdata
+                            data.lastsaved = Date.now()
+                            CUI.Events.trigger
+                                    node: element
+                                    type: "editor-changed"
+                        )
                 fields: fields
         .start()
         cdata_form.getFieldsByName("dante_InlineSelect")[0].disable()
