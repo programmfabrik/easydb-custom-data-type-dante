@@ -93,6 +93,15 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                 CUI.Events.trigger
                     type: "search-input-change"
                     node: form
+                CUI.Events.trigger
+                    type: "editor-changed"
+                    node: form
+                CUI.Events.trigger
+                    type: "change"
+                    node: form
+                CUI.Events.trigger
+                    type: "input"
+                    node: form
 
       form.DOM
 
@@ -119,8 +128,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
           filter._unset_filter = true
           return filter
 
-      # dropdown or popup without tree: use sameas
-      if ! that.renderPopupAsTreeview()
+      # dropdown or popup without tree or use of searchbar: use sameas
+      if ! that.renderPopupAsTreeview() || ! data[key]?.experthierarchicalsearchmode
         filter =
             type: "complex"
             search: [
@@ -142,7 +151,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         else
             filter = null
 
-      # popup with tree: 2 Modes
+      # popup with tree: 3 Modes
       if that.renderPopupAsTreeview()
         # 1. find all records which have the given uri in their ancestors
         if data[key].experthierarchicalsearchmode == 'include_children'
@@ -164,7 +173,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
               filter.search[1].in = [data[@name()].conceptURI]
           else
               filter = null
-        # 1. find all records which have exact that match
+        # 2. find all records which have exact that match
         if data[key].experthierarchicalsearchmode == 'exact'
           filter =
               type: "complex"
@@ -186,6 +195,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
               filter.search[1].in = [data[@name()].conceptURI]
           else
               filter = null
+
       filter
 
 
@@ -435,6 +445,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
             # set new items to menu
             itemList =
               onClick: (ev2, btn) ->
+
                 # if inline or treeview without popup
                 if ! that.renderPopupAsTreeview() || ! that.popover?.isShown()
                   searchUri = btn.getOpt("value")
