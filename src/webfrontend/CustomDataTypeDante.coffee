@@ -52,6 +52,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
   #######################################################################
   # returns, if user is allowed and correctly configured to add new records
+  ###
   getIngestPermissionStatus: ->
     status = false;
     if @getCustomSchemaSettings()?.insert_allowed
@@ -60,9 +61,10 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
           if @getCustomSchemaSettings().insert_username != '' && @getCustomSchemaSettings().insert_token != ''
             status = true
     status
-
+  ###
   #######################################################################
   # returns an entry for the three-dots-button-bar for addition of new records
+  ###
   getCustomButtonBarEntryForNewRecordAddition: ->
     that = @
     addNew =
@@ -104,7 +106,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
           modal.show()
           #that.__updateResult(cdata, layout, opts)
 
-
+  ###
   #######################################################################
   # render popup as treeview?
   renderPopupAsTreeview: ->
@@ -643,8 +645,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     if editorStyle == 'dropdown'
         @__renderEditorInputInline(data, cdata, opts)
     else
-        opts.customButtonBarEntrys = []
-        opts.customButtonBarEntrys.push that.getCustomButtonBarEntryForNewRecordAddition()
+        #opts.customButtonBarEntrys = []
+        #opts.customButtonBarEntrys.push that.getCustomButtonBarEntryForNewRecordAddition()
         @__renderEditorInputPopover(data, cdata, opts)
 
 
