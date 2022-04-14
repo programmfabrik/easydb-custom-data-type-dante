@@ -79,3 +79,8 @@ server.config.parameter.system.update_interval_dante.dev_api.checkbox,Aktiviere 
 server.config.parameter.system.update_interval_dante.test_api.label,Teste API,Test API
 server.config.parameter.system.update_interval_dante.test_api.checkbox,Teste die API vor dem Update,Test API before update
 server.config.parameter.system.update_interval_dante.default_language.label,Standard-Datensprache als Fallback für Update (ISO 639-1),Default-data-language (as fallback) for update (ISO 639-1)
+custom.data.type.dante.config.parameter.schema.insert_allowed.value.label,Neu anlegen?,Add new?
+custom.data.type.dante.config.parameter.schema.insert_allowed.value.checkbox, Die Neuanlage von Datensätzen über das DANTE-Plugin erlauben (nicht im Dropdown-Modus möglich),Allow adding records via the DANTE plugin (not possible in dropdown-mode)
+custom.data.type.dante.config.parameter.schema.insert_username.value.label,Nutzername für das Neuanlegen (DANTE-Vokabular-Konfiguration),Username for adding (from DANTE vocabulary configuration)
+custom.data.type.dante.config.parameter.schema.insert_token.value.label,Token für das Neuanlegen (DANTE-Vokabular-Konfiguration),Token for adding (from DANTE vocabulary configuration)
+custom.data.type.commons.controls.addnew.label,Neu anlegen,add new

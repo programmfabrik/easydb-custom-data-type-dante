@@ -51,6 +51,61 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     xreturn
 
   #######################################################################
+  # returns, if user is allowed and correctly configured to add new records
+  getIngestPermissionStatus: ->
+    status = false;
+    if @getCustomSchemaSettings()?.insert_allowed
+      if @getCustomSchemaSettings()?.insert_username
+        if @getCustomSchemaSettings()?.insert_token
+          if @getCustomSchemaSettings().insert_username != '' && @getCustomSchemaSettings().insert_token != ''
+            status = true
+    status
+
+  #######################################################################
+  # returns an entry for the three-dots-button-bar for addition of new records
+  getCustomButtonBarEntryForNewRecordAddition: ->
+    that = @
+    addNew =
+        text: $$('custom.data.type.commons.controls.addnew.label')
+        value: 'new'
+        name: 'addnewValueFromDANTEPlugin'
+        class: 'addnewValueFromDANTEPlugin'
+        icon_left: new CUI.Icon(class: "fa-plus")
+        onClick: ->
+          console.log "clicked on add-button"
+          # open modal with form for entering of basic record information
+          modal = new CUI.Modal
+              placement: "c"
+              pane:
+                  content: "No Content. Fill it."
+                  header_left: new CUI.Label( text: "LEFT" )
+                  header_right: new CUI.Label( text: "RIGHT" )
+                  footer_right: =>
+                    [
+                      new CUI.Button
+                        text: "Fill"
+                        class: "cui-dialog"
+                        onClick: =>
+                          @mod.append(@getBlindText())
+                    ,
+                      new CUI.Button
+                        text: "Cancel"
+                        class: "cui-dialog"
+                        onClick: =>
+                          @mod.destroy()
+                    ,
+                      new CUI.Button
+                        text: "Ok"
+                        class: "cui-dialog"
+                        primary: true
+                        onClick: =>
+                          @mod.destroy()
+                    ]
+          modal.show()
+          #that.__updateResult(cdata, layout, opts)
+
+
+  #######################################################################
   # render popup as treeview?
   renderPopupAsTreeview: ->
     result = false
@@ -134,11 +189,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
             type: "complex"
             search: [
                 type: "in"
-                bool: "must"
-                fields: [ "_objecttype" ]
-                in: [ objecttype ]
-            ,
-                type: "in"
                 mode: "fulltext"
                 bool: "must"
                 phrase: false
@@ -160,11 +210,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
               search: [
                   type: "in"
                   bool: "must"
-                  fields: [ "_objecttype" ]
-                  in: [ objecttype ]
-              ,
-                  type: "in"
-                  bool: "must"
                   fields: [ @path() + '.' + @name() + ".conceptAncestors" ]
               ]
           if ! data[@name()]
@@ -178,11 +223,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
           filter =
               type: "complex"
               search: [
-                  type: "in"
-                  bool: "must"
-                  fields: [ "_objecttype" ]
-                  in: [ objecttype ]
-              ,
                   type: "in"
                   mode: "fulltext"
                   bool: "must"
@@ -560,6 +600,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   renderEditorInput: (data, top_level_data, opts) ->
     #console.error @, data, top_level_data, opts, @name(), @fullName()
 
+    that = @
+
     # if not called from poolmanagerplugin
     if ! opts?.callfrompoolmanager
       if not data[@name()]
@@ -601,6 +643,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     if editorStyle == 'dropdown'
         @__renderEditorInputInline(data, cdata, opts)
     else
+        opts.customButtonBarEntrys = []
+        opts.customButtonBarEntrys.push that.getCustomButtonBarEntryForNewRecordAddition()
         @__renderEditorInputPopover(data, cdata, opts)
 
 
