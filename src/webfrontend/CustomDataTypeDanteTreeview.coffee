@@ -12,7 +12,7 @@ class DANTE_ListViewTree
     #############################################################################
     # construct
     #############################################################################
-    constructor: (@popover = null, @editor_layout = null, @cdata = null, @cdata_form = null, @context = null, @dante_opts = {}) ->
+    constructor: (@popover = null, @editor_layout = null, @cdata = null, @cdata_form = null, @context = null, @dante_opts = {}, @vocParameter = 'test') ->
 
         options =
           class: "dantePlugin_Treeview"
@@ -74,7 +74,6 @@ class DANTE_ListViewTree
 
             newNode = new DANTE_ListViewTreeNode
                 selectable: false
-              ,
                 prefLabel: prefLabel
                 uri: jskos.uri
                 hasNarrowers: hasNarrowers
@@ -83,6 +82,7 @@ class DANTE_ListViewTree
                 cdata_form: that.cdata_form
                 guideTerm: DANTE_ListViewTreeNode.prototype.isGuideTerm(jskos)
                 context: that.context
+                vocParameter: that.vocParameter
                 dante_opts: that.dante_opts
                 editor_layout: that.editor_layout
 
@@ -114,7 +114,6 @@ class DANTE_ListViewTree
         topTree_xhr.xhr.start().done((data, status, statusText) ->
 
           # parse search result and build virtual tree from result
-
           virtualTree = []
           counter = 0
           maxCount = 10000
@@ -196,9 +195,9 @@ class DANTE_ListViewTree
                   selectable: false
                   open: hasNarrowers
                   children : getChildNodesFromVirtualTree(nodeValue.children)
-                ,
                   prefLabel: nodeValue.prefLabel
                   uri: nodeValue.uri
+                  vocParameter: that.vocParameter
                   hasNarrowers: hasNarrowers
                   guideTerm: nodeValue.guideTerm
                   popover: that.popover
@@ -228,10 +227,11 @@ class DANTE_ListViewTree
             newNode = new DANTE_ListViewTreeNode
                 selectable: false
                 open: hasNarrowers
+                hasChildren: hasNarrowers
                 children : children
-              ,
                 prefLabel: value.prefLabel
                 uri: value.uri
+                vocParameter: that.vocParameter
                 hasNarrowers: hasNarrowers
                 guideTerm: value.guideTerm
                 popover: that.popover
@@ -242,7 +242,6 @@ class DANTE_ListViewTree
                 editor_layout: that.editor_layout
 
             that.treeview.addNode(newNode)
-
           # remove loading  row
           that.treeview.removeRow(0)
 
@@ -261,19 +260,41 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
     prefLabel = ''
     uri = ''
 
-    constructor: (@opts={}, @additionalOpts={}) ->
+    initOpts: ->
+       super()
 
-        super()
+       @addOpts
+          prefLabel:
+             check: String
+          uri:
+             check: String
+          vocParameter:
+             check: String
+          children:
+             check: Array
+          guideTerm:
+             check: Boolean
+             default: false
+          hasNarrowers:
+             check: Boolean
+             default: false
+          popover:
+             check: CUI.Popover
+          cdata:
+             check: "PlainObject"
+             default: {}
+          cdata_form:
+             check: CUI.Form
+          context:
+             check: CustomDataTypeDANTE
+          dante_opts:
+             check: "PlainObject"
+             default: {}
+          editor_layout:
+             check: CUI.HorizontalLayout
 
-        @prefLabel = @additionalOpts.prefLabel
-        @uri = @additionalOpts.uri
-        @guideTerm = @additionalOpts.guideTerm
-        @popover = @additionalOpts.popover
-        @cdata = @additionalOpts.cdata
-        @cdata_form = @additionalOpts.cdata_form
-        @context = @additionalOpts.context
-        @dante_opts = @additionalOpts.dante_opts
-        @editor_layout = @additionalOpts.editor_layout
+    readOpts: ->
+       super()
 
     #########################################
     # function isGuideTerm
@@ -296,10 +317,10 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
         # default cache is on
         cache = '1'
         # but if "reset"-button was pressed, disable cache for the active popup
-        if that.context.resettedPopup
+        if that._context.resettedPopup
           cache = '0'
 
-        url = location.protocol + '//api.dante.gbv.de/narrower?format=json&uri=' + @uri + '&limit=100&cache=' + cache
+        url = location.protocol + '//api.dante.gbv.de/narrower?format=json&uri=' + @_uri + '&limit=100&cache=' + cache + '&voc=' + @_vocParameter
         getChildren_xhr ={ "xhr" : undefined }
         getChildren_xhr.xhr = new (CUI.XHR)(url: url)
         getChildren_xhr.xhr.start().done((data, status, statusText) ->
@@ -314,17 +335,17 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
 
             newNode = new DANTE_ListViewTreeNode
                 selectable: false
-              ,
                 prefLabel: prefLabel
                 uri: jskos.uri
+                vocParameter: that._vocParameter
                 hasNarrowers: hasNarrowers
-                popover: that.popover
-                cdata: that.cdata
-                cdata_form: that.cdata_form
+                popover: that._popover
+                cdata: that._cdata
+                cdata_form: that._cdata_form
                 guideTerm: that.isGuideTerm(jskos)
-                context: that.context
-                dante_opts: that.dante_opts
-                editor_layout: that.editor_layout
+                context: that._context
+                dante_opts: that._dante_opts
+                editor_layout: that._editor_layout
             children.push(newNode)
           dfr.resolve(children)
         )
@@ -334,7 +355,7 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
     #########################################
     # function isLeaf
     isLeaf: =>
-        if @additionalOpts.hasNarrowers == true
+        if @opts.hasNarrowers == true
             return false
         else
           return true
@@ -352,7 +373,7 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
         # guideterm?
         icon = 'fa-plus-circle'
         tooltipText = $$('custom.data.type.dante.modal.form.popup.add_choose')
-        if that.guideTerm
+        if that._guideTerm
           icon = 'fa-sitemap'
           tooltipText = $$('custom.data.type.dante.modal.form.popup.add_sitemap')
 
@@ -368,49 +389,49 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
 
                               # cache?
                               cache = '&cache=0'
-                              if that.context.resettedPopup
+                              if that._context.resettedPopup
                                   cache = '&cache=1'
 
-                              suggestAPIPath = location.protocol + '//api.dante.gbv.de/data?uri=' + that.uri + cache + '&properties=+ancestors'
+                              allDataAPIPath = location.protocol + '//api.dante.gbv.de/data?uri=' + that._uri + cache + '&properties=+ancestors'
 
-                              # start suggest-XHR
-                              dataEntry_xhr = new (CUI.XHR)(url: suggestAPIPath)
-                              dataEntry_xhr.start().done((data_suggest, status, statusText) ->
-                                resultJSKOS = data_suggest[0];
+                              # start XHR
+                              dataEntry_xhr = new (CUI.XHR)(url: allDataAPIPath)
+                              dataEntry_xhr.start().done((data_response, status, statusText) ->
+                                resultJSKOS = data_response[0];
                                 # if treeview, add ancestors
-                                that.cdata.conceptAncestors = []
+                                that._cdata.conceptAncestors = []
                                 if resultJSKOS.ancestors.length > 0
                                   # save ancestor-uris to cdata
                                   for jskos in resultJSKOS.ancestors
-                                    that.cdata.conceptAncestors.push jskos.uri
+                                    that._cdata.conceptAncestors.push jskos.uri
                                 # add own uri to ancestor-uris
-                                that.cdata.conceptAncestors.push that.uri
+                                that._cdata.conceptAncestors.push that._uri
 
                                 # is user allowed to choose label manually from list and not in expert-search?!
-                                if that.context?.FieldSchema?.custom_settings?.allow_label_choice?.value == true && that.dante_opts?.mode == 'editor'
-                                  CustomDataTypeDANTE.prototype.__chooseLabelManually(that.cdata, that.editor_layout, resultJSKOS, that.editor_layout, that.dante_opts)
+                                if that._context?.FieldSchema?.custom_settings?.allow_label_choice?.value == true && that._dante_opts?.mode == 'editor'
+                                  CustomDataTypeDANTE.prototype.__chooseLabelManually(that._cdata, that._editor_layout, resultJSKOS, that._editor_layout, that._dante_opts)
 
                                 # attach info to cdata_form
-                                that.cdata.conceptName = that.prefLabel
-                                that.cdata.conceptURI = that.uri
+                                that._cdata.conceptName = that._prefLabel
+                                that._cdata.conceptURI = that._uri
                                 # save _fulltext
-                                that.cdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject resultJSKOS
+                                that._cdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject resultJSKOS
                                 # save _standard
-                                that.cdata._standard = ez5.DANTEUtil.getStandardFromJSKOSObject resultJSKOS
+                                that._cdata._standard = ez5.DANTEUtil.getStandardFromJSKOSObject resultJSKOS
 
                                 # is this from exact search and user has to choose exact-search-mode?!
-                                if that.dante_opts?.callFromExpertSearch == true
-                                  CustomDataTypeDANTE.prototype.__chooseExpertHierarchicalSearchMode(that.cdata, that.editor_layout, resultJSKOS, that.editor_layout, that.dante_opts)
+                                if that._dante_opts?.callFromExpertSearch == true
+                                  CustomDataTypeDANTE.prototype.__chooseExpertHierarchicalSearchMode(that._cdata, that._editor_layout, resultJSKOS, that._editor_layout, that._dante_opts)
 
                                 # update form
-                                CustomDataTypeDANTE.prototype.__updateResult(that.cdata, that.editor_layout, that.dante_opts)
+                                CustomDataTypeDANTE.prototype.__updateResult(that._cdata, that._editor_layout, that._dante_opts)
                                 # hide popover
-                                that.popover.hide()
+                                that._popover.hide()
                               )
 
 
         # add '+'-Button, if not guideterm
-        plusButton.setEnabled(!that.guideTerm)
+        plusButton.setEnabled(!that._guideTerm)
 
         buttons.push(plusButton)
 
@@ -425,7 +446,7 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
                           placement: "e"
                           content: (tooltip) ->
                             # show infopopup
-                            CustomDataTypeDANTE.prototype.__getAdditionalTooltipInfo(that.uri, tooltip, extendedInfo_xhr, that.context)
+                            CustomDataTypeDANTE.prototype.__getAdditionalTooltipInfo(that._uri, tooltip, extendedInfo_xhr, that._context)
                             new CUI.Label(icon: "spinner", text: $$('custom.data.type.dante.modal.form.popup.loadingstring'))
         buttons.push(infoButton)
 
@@ -438,7 +459,7 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
         @addColumn(new CUI.ListViewColumn(element: d, colspan: 1))
 
         CUI.Events.trigger
-          node: that.popover
+          node: that._popover
           type: "content-resize"
 
-        new CUI.Label(text: @prefLabel)
+        new CUI.Label(text: @_prefLabel)

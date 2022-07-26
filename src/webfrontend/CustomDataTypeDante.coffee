@@ -197,9 +197,9 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                 fields: [ @path() + '.' + @name() + ".conceptURI" ]
             ]
         if ! data[@name()]
-            filter.search[1].in = [ null ]
+            filter.search[0].in = [ null ]
         else if data[@name()]?.conceptURI
-            filter.search[1].in = [data[@name()].conceptURI]
+            filter.search[0].in = [data[@name()].conceptURI]
         else
             filter = null
 
@@ -215,9 +215,9 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                   fields: [ @path() + '.' + @name() + ".conceptAncestors" ]
               ]
           if ! data[@name()]
-              filter.search[1].in = [ null ]
+              filter.search[0].in = [ null ]
           else if data[@name()]?.conceptURI
-              filter.search[1].in = [data[@name()].conceptURI]
+              filter.search[0].in = [data[@name()].conceptURI]
           else
               filter = null
         # 2. find all records which have exact that match
@@ -232,9 +232,9 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                   fields: [ @path() + '.' + @name() + ".conceptURI" ]
               ]
           if ! data[@name()]
-              filter.search[1].in = [ null ]
+              filter.search[0].in = [ null ]
           else if data[@name()]?.conceptURI
-              filter.search[1].in = [data[@name()].conceptURI]
+              filter.search[0].in = [data[@name()].conceptURI]
           else
               filter = null
 
@@ -442,6 +442,9 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
             # sort by voc/uri-part in tmp-array
             tmp_items = []
+            # a list of the unique text suggestions for treeview-suggest
+            unique_text_suggestions = []
+            unique_text_items = []
             for suggestion, key in data_1[1]
               vocab = 'default'
               if showHeadlines
@@ -453,6 +456,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
               if ! Array.isArray tmp_items[vocab]
                 tmp_items[vocab] = []
               do(key) ->
+                # default item
                 item =
                   text: suggestion
                   value: data_1[3][key]
@@ -465,8 +469,16 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                       that.__getAdditionalTooltipInfo(encodedURI, tooltip, extendedInfo_xhr)
                       new CUI.Label(icon: "spinner", text: $$('custom.data.type.dante.modal.form.popup.loadingstring'))
                 tmp_items[vocab].push item
+                # unique item for treeview
+                if suggestion not in unique_text_suggestions
+                  unique_text_suggestions.push suggestion
+                  item =
+                    text: suggestion
+                    value: suggestion
+                  unique_text_items.push item
             # create new menu with suggestions
             menu_items = []
+
             actualVocab = ''
             for vocab, part of tmp_items
               if showHeadlines
@@ -530,7 +542,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                   ancestors = '';
                   #if that.renderPopupAsTreeview() && ! that.popover
                   if that.renderPopupAsTreeview()
-                    ancestors = 'ancestors'
+                    ancestors = ',ancestors'
 
                   # get full record to get correct preflabel in desired language
                   suggestAPIPath = location.protocol + '//api.dante.gbv.de/data?uri=' + searchUri + cache + '&properties=+hiddenLabel,notation,scopeNote,definition,identifier,example,location,depiction,startDate,endDate,startPlace,endPlace' + ancestors
@@ -583,6 +595,10 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                     cdata_form.getFieldsByName("searchbarInput")[0].setValue(btn.getText())
 
               items: menu_items
+
+            # if treeview in popup: use unique suggestlist (only one voc and text-search)
+            if that.renderPopupAsTreeview() && that.popover?.isShown()
+              itemList.items = unique_text_items
 
             # if no suggestions: set "empty" message to menu
             if itemList.items.length == 0
@@ -803,7 +819,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     else
       opts.callFromExpertSearch = false
 
-    treeview = new DANTE_ListViewTree(popover, layout, cdata, cdata_form, that, opts)
     if topMethod
       # get vocparameter from dropdown, if available...
       popoverVocabularySelectTest = cdata_form.getFieldsByName("dante_PopoverVocabularySelect")[0]
@@ -814,6 +829,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         vocParameter = that.getActiveVocabularyName(cdata)
         vocParameter = vocParameter.split('|')
         vocParameter = vocParameter[0]
+
+      treeview = new DANTE_ListViewTree(popover, layout, cdata, cdata_form, that, opts, vocParameter)
 
       # maybe deferred is wanted?
       if returnDfr == false
