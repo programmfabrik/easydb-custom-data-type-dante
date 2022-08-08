@@ -39,18 +39,6 @@ custom_types:
           parameters:
             value:
               type: text
-        - name: insert_allowed
-          parameters:
-            value:
-              type: bool
-        - name: insert_username
-          parameters:
-            value:
-              type: text
-        - name: insert_token
-          parameters:
-            value:
-              type: text
       mask:
         - name: editor_style
           parameters:
