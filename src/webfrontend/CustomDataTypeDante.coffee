@@ -545,8 +545,9 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                     ancestors = ',ancestors'
 
                   # get full record to get correct preflabel in desired language
+                  searchUri = encodeURIComponent(searchUri)
                   suggestAPIPath = location.protocol + '//api.dante.gbv.de/data?uri=' + searchUri + cache + '&properties=+hiddenLabel,notation,scopeNote,definition,identifier,example,location,depiction,startDate,endDate,startPlace,endPlace' + ancestors
-
+                  console.log "suggestAPIPath", suggestAPIPath
                   # start suggest-XHR
                   dataEntry_xhr = new (CUI.XHR)(url: suggestAPIPath)
                   dataEntry_xhr.start().done((data_suggest, status, statusText) ->
@@ -560,6 +561,9 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                           cdata.conceptAncestors.push jskos.uri
                       # add own uri to ancestor-uris
                       cdata.conceptAncestors.push searchUri
+
+                    console.log "resultJSKOS", resultJSKOS
+                    console.log "resultJSKOS.uri", resultJSKOS.uri
 
                     if resultJSKOS.uri
                       # lock conceptURI in savedata
