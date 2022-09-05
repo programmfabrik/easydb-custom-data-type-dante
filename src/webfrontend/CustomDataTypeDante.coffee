@@ -767,7 +767,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                       cdata.conceptAncestors = []
                       if cdata.conceptURI != null
                         # download data from dante for fulltext
-                        fulltext_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + cdata.conceptURI + '&cache=1&properties=+ancestors,hiddenLabel,notation,scopeNote,definition,identifier,example,location,depiction,startDate,endDate,startPlace,endPlace')
+                        fulltext_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + encodeURIComponent(cdata.conceptURI) + '&cache=1&properties=+ancestors,hiddenLabel,notation,scopeNote,definition,identifier,example,location,depiction,startDate,endDate,startPlace,endPlace')
                         fulltext_xhr.start().done((detail_data, status, statusText) ->
                             cdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject detail_data
                             cdata._standard= ez5.DANTEUtil.getStandardFromJSKOSObject detail_data
