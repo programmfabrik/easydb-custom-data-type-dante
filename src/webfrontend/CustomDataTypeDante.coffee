@@ -2,9 +2,13 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
   getFacet: (opts) ->
       opts.field = @
-      console.warn ez5.version("6")
-      console.warn ez5.version("5")
-      new CustomDataTypeDANTEFacet(opts)
+      if ez5.version("6")
+        console.log "use fylr facet"
+        new CustomDataTypeDANTEFacet(opts)
+      if ez5.version("5")
+        console.log "use easydb5 facet"
+        new CustomDataTypeCommonFacet(opts)
+
 
   #######################################################################
   # return name of plugin
