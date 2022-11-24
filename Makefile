@@ -21,6 +21,7 @@ MAPBOX2 = src/external/geo-viewport.js
 
 COFFEE_FILES = easydb-library/src/commons.coffee \
 	src/webfrontend/CustomDataTypeDante.coffee \
+	src/webfrontend/CustomDataTypeDanteFacet.coffee \
   src/webfrontend/CustomDataTypeDanteParseJSKOS.coffee \
   src/webfrontend/CustomDataTypeDanteTreeview.coffee \
 	src/webfrontend/DANTEUtil.coffee

@@ -15,7 +15,7 @@ class ez5.DANTEUtil
 
   @getFullTextFromJSKOSObject: (object, databaseLanguages = false) ->
     if databaseLanguages == false
-      databaseLanguages = ez5.loca.getDatabaseLanguages()
+      databaseLanguages = ez5.loca.getLanguageControl().getLanguages()
 
     shortenedDatabaseLanguages = databaseLanguages.map((value, key, array) ->
       value.split('-').shift()
@@ -112,6 +112,7 @@ class ez5.DANTEUtil
 
     return _fulltext
 
+
   ###
   @name         getStandardFromJSKOSObject
   @description  This function generates the _standard-Object, which is required for display-purposes
@@ -122,43 +123,24 @@ class ez5.DANTEUtil
   @getStandardFromJSKOSObject: (JSKOS, databaseLanguages = false) ->
 
     if databaseLanguages == false
-      databaseLanguages = ez5.loca.getDatabaseLanguages()
+      databaseLanguages = ez5.loca.getLanguageControl().getLanguages()
 
     shortenedDatabaseLanguages = databaseLanguages.map((value, key, array) ->
       value.split('-').shift()
     )
 
-    activeFrontendLanguage = null
-    # only get frontendLanguage, if not updater...
-    if CustomDataTypeDANTE?
-      if CustomDataTypeDANTE.prototype.getFrontendLanguage() != false
-          activeFrontendLanguage = CustomDataTypeDANTE.prototype.getFrontendLanguage()
-
-    if cdata?.frontendLanguage
-        if cdata?.frontendLanguage?.length == 2
-          activeFrontendLanguage = cdata.frontendLanguage
-
     if Array.isArray(JSKOS)
       JSKOS = JSKOS[0]
 
     _standard = {}
-    standardTextString = ''
     l10nObject = {}
 
     # init l10nObject for fulltext
     for language in databaseLanguages
       l10nObject[language] = ''
 
-    # build standard upon prefLabel!
-    # 1. TEXT
-    if JSKOS.prefLabel[activeFrontendLanguage]
-      standardTextString = JSKOS.prefLabel[activeFrontendLanguage]
-    # else take first preflabel..
-    else
-      standardTextString = JSKOS.prefLabel[Object.keys(JSKOS.prefLabel)[0]]
-
-    # 2. L10N
     hasl10n = false
+
     #  give l10n-languages the easydb-language-syntax
     for l10nObjectKey, l10nObjectValue of l10nObject
       # get shortened version
@@ -189,7 +171,74 @@ class ez5.DANTEUtil
 
     # if l10n-object is not empty
     _standard.l10ntext = l10nObject
-    # "Invalid content: only one of _standard.text and _standard.l10ntext is allowed in custom data type custom:base.custom-data-type"
-    #_standard.text = standardTextString
 
     return _standard
+
+
+  ###
+  @name         getFacetTermFromJSKOSObject
+  @description  generates a json-structure, which is only used for facetting (aka filter) in frontend
+  ###
+  @getFacetTermFromJSKOSObject: (JSKOS) ->
+    console.log "f:getFacetTermFromJSKOSObject"
+
+    databaseLanguages = ez5.loca.getLanguageControl().getLanguages()
+
+    shortenedDatabaseLanguages = databaseLanguages.map((value, key, array) ->
+      value.split('-').shift()
+    )
+
+    if Array.isArray(JSKOS)
+      JSKOS = JSKOS[0]
+
+    _facet_term = {}
+
+    l10nObject = {}
+
+    # init l10nObject
+    for language in databaseLanguages
+      l10nObject[language] = ''
+
+    # build facetTerm upon prefLabels and uri!
+
+    hasl10n = false
+
+    #  give l10n-languages the easydb-language-syntax
+    for l10nObjectKey, l10nObjectValue of l10nObject
+      # get shortened version
+      shortenedLanguage = l10nObjectKey.split('-')[0]
+      # add to l10n
+      if JSKOS.prefLabel[shortenedLanguage]
+        l10nObject[l10nObjectKey] = JSKOS.prefLabel[shortenedLanguage]
+        l10nObject[l10nObjectKey] = l10nObject[l10nObjectKey] + '@$@' + JSKOS.uri
+        hasl10n = true
+
+    # if l10n, yet not in all languages
+    #   --> fill the other languages with something as fallback
+    if hasl10n
+      for l10nObjectKey, l10nObjectValue of l10nObject
+        if l10nObject[l10nObjectKey] == ''
+          l10nObject[l10nObjectKey] = JSKOS.prefLabel[Object.keys(JSKOS.prefLabel)[0]]
+          l10nObject[l10nObjectKey] = l10nObject[l10nObjectKey] + '@$@' + JSKOS.uri
+
+    # if no l10n yet
+    if ! hasl10n
+      for l10nObjectKey, l10nObjectValue of l10nObject
+        if JSKOS.prefLabel['und']
+          l10nObject[l10nObjectKey] = JSKOS.prefLabel['und']
+        else if JSKOS.prefLabel['zxx']
+          l10nObject[l10nObjectKey] = JSKOS.prefLabel['zxx']
+        else if JSKOS.prefLabel['mis']
+          l10nObject[l10nObjectKey] = JSKOS.prefLabel['mis']
+        else if JSKOS.prefLabel['mul']
+          l10nObject[l10nObjectKey] = JSKOS.prefLabel['mul']
+
+        l10nObject[l10nObjectKey] = l10nObject[l10nObjectKey] + '@$@' + JSKOS.uri
+
+    # if l10n-object is not empty
+    _facet_term = l10nObject
+
+    #_facet_term = JSON.stringify(_facet_term)
+    console.log "_facet_term", _facet_term
+
+    return _facet_term

@@ -3,6 +3,7 @@ class DANTEUpdate
   __start_update: ({server_config, plugin_config}) ->
       # Check if DANTE-API is fully available. This will take at least 10 seconds. Dont panic.
       testURL = 'https://api.dante.gbv.de/testAPICalls'
+      console.log "server_config.base.system.languages", server_config.base.system.languages
       ez5.respondSuccess({
         state: {
             "start_update": new Date().toUTCString()
@@ -86,7 +87,8 @@ class DANTEUpdate
                     conceptAncestors.push ancestor.uri
                   # add own uri to ancestor-uris
                   conceptAncestors.push data.uri
-                  updatedDANTEcdata.conceptAncestors = conceptAncestors
+                  conceptAncestorsString = conceptAncestors.join(' ')
+                  updatedDANTEcdata.conceptAncestors = conceptAncestorsString
 
                 # conceptName
 

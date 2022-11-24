@@ -407,6 +407,9 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
                                 # add own uri to ancestor-uris
                                 that._cdata.conceptAncestors.push that._uri
 
+                                # merge to string
+                                that._cdata.conceptAncestors = that._cdata.conceptAncestors.join(' ')
+
                                 # is user allowed to choose label manually from list and not in expert-search?!
                                 if that._context?.FieldSchema?.custom_settings?.allow_label_choice?.value == true && that._dante_opts?.mode == 'editor'
                                   CustomDataTypeDANTE.prototype.__chooseLabelManually(that._cdata, that._editor_layout, resultJSKOS, that._editor_layout, that._dante_opts)
@@ -418,7 +421,8 @@ class DANTE_ListViewTreeNode extends CUI.ListViewTreeNode
                                 that._cdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject resultJSKOS
                                 # save _standard
                                 that._cdata._standard = ez5.DANTEUtil.getStandardFromJSKOSObject resultJSKOS
-
+                                # save facet
+                                that._cdata.facetTerm = ez5.DANTEUtil.getFacetTermFromJSKOSObject resultJSKOS
                                 # is this from exact search and user has to choose exact-search-mode?!
                                 if that._dante_opts?.callFromExpertSearch == true
                                   CustomDataTypeDANTE.prototype.__chooseExpertHierarchicalSearchMode(that._cdata, that._editor_layout, resultJSKOS, that._editor_layout, that._dante_opts)

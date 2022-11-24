@@ -29,6 +29,8 @@ custom_types:
         type: text
       conceptAncestors:
         type: text
+      _facet_term:
+        type: text_l10n
     config:
       schema:
         - name: vocabulary_name

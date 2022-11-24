@@ -1,5 +1,11 @@
 class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
+  getFacet: (opts) ->
+      opts.field = @
+      console.warn ez5.version("6")
+      console.warn ez5.version("5")
+      new CustomDataTypeDANTEFacet(opts)
+
   #######################################################################
   # return name of plugin
   getCustomDataTypeName: ->
@@ -36,7 +42,6 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
   # return name (l10n) of plugin
   getCustomDataTypeNameLocalized: ->
     $$("custom.data.type.dante.name")
-
 
   #######################################################################
   # returns name of the given vocabulary from datamodel
@@ -210,14 +215,16 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
           filter =
               type: "complex"
               search: [
-                  type: "in"
-                  bool: "must"
+                  type: "match"
+                  mode: "token"
+                  bool: "must",
+                  phrase: false
                   fields: [ @path() + '.' + @name() + ".conceptAncestors" ]
               ]
           if ! data[@name()]
-              filter.search[0].in = [ null ]
+              filter.search[0].string = null
           else if data[@name()]?.conceptURI
-              filter.search[0].in = [data[@name()].conceptURI]
+              filter.search[0].string = data[@name()].conceptURI
           else
               filter = null
         # 2. find all records which have exact that match
@@ -560,13 +567,18 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                           cdata.conceptAncestors.push jskos.uri
                       # add own uri to ancestor-uris
                       cdata.conceptAncestors.push searchUri
+                      # finally merge to string
+                      cdata.conceptAncestors = cdata.conceptAncestors.join(' ')
 
                     if resultJSKOS.uri
                       # lock conceptURI in savedata
                       cdata.conceptURI = resultJSKOS.uri
                       # lock _fulltext in savedata
                       cdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject resultJSKOS
+                      # lock _standard in savedata
                       cdata._standard = ez5.DANTEUtil.getStandardFromJSKOSObject resultJSKOS
+                      # lock facetTerm in savedata
+                      cdata.facetTerm = ez5.DANTEUtil.getFacetTermFromJSKOSObject resultJSKOS
 
                       # is user allowed to choose label manually from list and not in expert-search?!
                       if that.getCustomMaskSettings().allow_label_choice?.value && opts?.mode == 'editor'
@@ -632,12 +644,10 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
               cdata = {
                   conceptName : @getCustomMaskSettings().default_concept_name?.value
                   conceptURI : @getCustomMaskSettings().default_concept_uri?.value
-                  # TODO TODO TODO
                   _fulltext : {}
-                  # TODO TODO TODO
                   _standard : {}
-                  # TODO TODO TODO
-                  conceptAncestors: []
+                  facetTerm : {}
+                  conceptAncestors: null
               }
           data[@name()] = cdata
       else
@@ -764,13 +774,14 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                       cdata.conceptURI = element.getValue()
                       element.displayValue()
                       cdata.conceptName = element.getText()
-                      cdata.conceptAncestors = []
+                      cdata.conceptAncestors = null
                       if cdata.conceptURI != null
                         # download data from dante for fulltext
                         fulltext_xhr = new (CUI.XHR)(url: location.protocol + '//api.dante.gbv.de/data?uri=' + encodeURIComponent(cdata.conceptURI) + '&cache=1&properties=+ancestors,hiddenLabel,notation,scopeNote,definition,identifier,example,location,depiction,startDate,endDate,startPlace,endPlace')
                         fulltext_xhr.start().done((detail_data, status, statusText) ->
                             cdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject detail_data
                             cdata._standard= ez5.DANTEUtil.getStandardFromJSKOSObject detail_data
+                            cdata.facetTerm = ez5.DANTEUtil.getFacetTermFromJSKOSObject detail_data
                             if ! cdata?.conceptURI
                               cdata = {}
                             data[that.name(opts)] = cdata
