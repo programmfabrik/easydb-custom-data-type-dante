@@ -3,7 +3,6 @@ class DANTEUpdate
   __start_update: ({server_config, plugin_config}) ->
       # Check if DANTE-API is fully available. This will take at least 10 seconds. Dont panic.
       testURL = 'https://api.dante.gbv.de/testAPICalls'
-      console.error "server_config.base.system.languages", server_config.base.system.languages
       ez5.respondSuccess({
         state: {
             "start_update": new Date().toUTCString()
