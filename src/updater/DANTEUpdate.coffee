@@ -3,14 +3,22 @@ class DANTEUpdate
   __start_update: ({server_config, plugin_config}) ->
       # Check if DANTE-API is fully available. This will take at least 10 seconds. Dont panic.
       testURL = 'https://api.dante.gbv.de/testAPICalls'
-      ez5.respondSuccess({
-        state: {
-            "start_update": new Date().toUTCString()
-            "databaseLanguages" : server_config.base.system.languages.database
-            "test_api" : server_config.base.system.update_interval_dante.test_api
-            "default_language" : server_config.base.system.update_interval_dante.default_language
-        }
-      })
+      availabilityCheck_xhr = new (CUI.XHR)(url: testURL)
+      availabilityCheck_xhr.start()
+      .done((data, status, statusText) ->
+        if data?.status == true
+          console.error "DANTE-availabilityCheck is ok"
+          ez5.respondSuccess({
+            state: {
+                "start_update": new Date().toUTCString()
+                "databaseLanguages" : server_config.base.system.languages.database
+                "test_api" : server_config.base.system.update_interval_dante.test_api
+                "default_language" : server_config.base.system.update_interval_dante.default_language
+            }
+          })
+        else
+          ez5.respondError("custom.data.type.dante.update.error.generic", {error: "Test on DANTE-API was not successfull!"})
+      )
 
   __updateData: ({objects, plugin_config, state}) ->
     that = @
@@ -57,6 +65,7 @@ class DANTEUpdate
         uri = items[0]
         originalDANTEUri = uri
         uri = 'https://api.dante.gbv.de/data?cache=1&uri='  + CUI.encodeURIComponentNicely(uri) + '&properties=+ancestors,altLabel,hiddenLabel,notation,scopeNote,definition,identifier,example,startDate,endDate,startPlace,endPlace'
+        console.error "DANTE: ask for " + uri
         deferred = new CUI.Deferred()
         extendedInfo_xhr = new (CUI.XHR)(url: uri)
         extendedInfo_xhr.start()
