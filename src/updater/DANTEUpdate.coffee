@@ -12,7 +12,6 @@ class DANTEUpdate
             state: {
                 "start_update": new Date().toUTCString()
                 "databaseLanguages" : server_config.base.system.languages.database
-                "test_api" : server_config.base.system.update_interval_dante.test_api
                 "default_language" : server_config.base.system.update_interval_dante.default_language
             }
           })
@@ -21,6 +20,7 @@ class DANTEUpdate
       )
 
   __updateData: ({objects, plugin_config, state}) ->
+    console.error "DANTE: f__updateData"
     that = @
     objectsMap = {}
     DANTEUris = []
@@ -48,11 +48,10 @@ class DANTEUpdate
     if DANTEUris.length == 0
       return ez5.respondSuccess({payload: []})
 
-    timeout = plugin_config.update?.timeout or 0
-    timeout *= 1000 # The configuration is in seconds, so it is multiplied by 1000 to get milliseconds.
-
     # unique dante-uris
     DANTEUris = DANTEUris.filter((x, i, a) => a.indexOf(x) == i)
+
+    console.error "DANTEUris", DANTEUris
 
     objectsToUpdate = []
 
@@ -97,9 +96,10 @@ class DANTEUpdate
                   conceptAncestors.push data.uri
                   conceptAncestorsString = conceptAncestors.join(' ')
                   updatedDANTEcdata.conceptAncestors = conceptAncestorsString
+                else
+                  updatedDANTEcdata.conceptAncestors = ''
 
                 # conceptName
-
                 # change only, if a frontendLanguage is set AND it is not a manually chosen label
                 if cdataFromObjectsMap?.frontendLanguage?.length == 2
                   updatedDANTEcdata.frontendLanguage = cdataFromObjectsMap.frontendLanguage
@@ -158,6 +158,8 @@ class DANTEUpdate
                 # _standard & _fulltext
                 updatedDANTEcdata._standard = ez5.DANTEUtil.getStandardFromJSKOSObject data, databaseLanguages
                 updatedDANTEcdata._fulltext = ez5.DANTEUtil.getFullTextFromJSKOSObject data, databaseLanguages
+
+                # TODO   # _facet ????
 
                 # aggregate in objectsMap
                 if not that.__hasChanges(objectsMap[originalDANTEUri][objectsMapKey].data, updatedDANTEcdata)
