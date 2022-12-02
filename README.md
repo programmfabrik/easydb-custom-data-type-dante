@@ -12,7 +12,7 @@ The Plugins uses <https://api.dante.gbv.de/> for the communication with DANTE.
 
 ## configuration
 
-As defined in `CustomDataTypeDante.config.yml` this datatype can be configured:
+As defined in `manifest.yml` this datatype can be configured:
 
 ### Schema options
 
@@ -43,4 +43,3 @@ As defined in `CustomDataTypeDante.config.yml` this datatype can be configured:
 ## sources
 
 The source code of this plugin is managed in a git repository at <https://github.com/programmfabrik/easydb-custom-data-type-dante>. Please use [the issue tracker](https://github.com/programmfabrik/easydb-custom-data-type-dante/issues) for bug reports and feature requests!
-
