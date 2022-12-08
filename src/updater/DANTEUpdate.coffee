@@ -7,7 +7,6 @@ class DANTEUpdate
       availabilityCheck_xhr.start()
       .done((data, status, statusText) ->
         if data?.status == true
-          console.error "DANTE-availabilityCheck is ok"
           ez5.respondSuccess({
             state: {
                 "start_update": new Date().toUTCString()
@@ -20,7 +19,7 @@ class DANTEUpdate
       )
 
   __updateData: ({objects, plugin_config, state}) ->
-    console.error "DANTE: f__updateData"
+    #console.error "DANTE: f__updateData"
     that = @
     objectsMap = {}
     DANTEUris = []
@@ -51,7 +50,7 @@ class DANTEUpdate
     # unique dante-uris
     DANTEUris = DANTEUris.filter((x, i, a) => a.indexOf(x) == i)
 
-    console.error "DANTEUris", DANTEUris
+    #console.error "DANTEUris", DANTEUris
 
     objectsToUpdate = []
 
@@ -64,7 +63,7 @@ class DANTEUpdate
         uri = items[0]
         originalDANTEUri = uri
         uri = 'https://api.dante.gbv.de/data?cache=1&uri='  + CUI.encodeURIComponentNicely(uri) + '&properties=+ancestors,altLabel,hiddenLabel,notation,scopeNote,definition,identifier,example,startDate,endDate,startPlace,endPlace'
-        console.error "DANTE: ask for " + uri
+        #console.error "DANTE: ask for " + uri
         deferred = new CUI.Deferred()
         extendedInfo_xhr = new (CUI.XHR)(url: uri)
         extendedInfo_xhr.start()
@@ -85,19 +84,23 @@ class DANTEUpdate
 
                 # conceptUri
                 updatedDANTEcdata.conceptURI = data.uri
+                #console.error "DANTE: now parsing " + data.uri
 
                 # conceptAncestors
-                updatedDANTEcdata.conceptAncestors = []
+                updatedDANTEcdata.conceptAncestors = ''
                 if data?.ancestors.length > 0
+                  #console.error "DANTE: data?.ancestors.length" + data?.ancestors.length
                   conceptAncestors = []
                   for ancestor in data.ancestors
                     conceptAncestors.push ancestor.uri
-                  # add own uri to ancestor-uris
-                  conceptAncestors.push data.uri
-                  conceptAncestorsString = conceptAncestors.join(' ')
-                  updatedDANTEcdata.conceptAncestors = conceptAncestorsString
-                else
-                  updatedDANTEcdata.conceptAncestors = ''
+                  if conceptAncestors.length > 0
+                    # add own uri to ancestor-uris
+                    conceptAncestors.push data.uri
+                    # make string from array
+                    conceptAncestorsString = conceptAncestors.join(' ')
+                    # to result
+                    updatedDANTEcdata.conceptAncestors = conceptAncestorsString
+                #console.error "DANTE: conceptAncestors is " + updatedDANTEcdata.conceptAncestors
 
                 # conceptName
                 # change only, if a frontendLanguage is set AND it is not a manually chosen label
@@ -163,8 +166,10 @@ class DANTEUpdate
 
                 # aggregate in objectsMap
                 if not that.__hasChanges(objectsMap[originalDANTEUri][objectsMapKey].data, updatedDANTEcdata)
+                  #console.error "DANTE: no changes!"
                   continue
                 else
+                  #console.error "DANTE: has changes!"
                   objectsMap[originalDANTEUri][objectsMapKey].data = updatedDANTEcdata
                   objectsToUpdate.push(objectsMap[originalDANTEUri][objectsMapKey])
           deferred.resolve()
