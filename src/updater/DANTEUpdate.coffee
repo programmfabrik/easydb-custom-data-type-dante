@@ -19,7 +19,6 @@ class DANTEUpdate
       )
 
   __updateData: ({objects, plugin_config, state}) ->
-    #console.error "DANTE: f__updateData"
     that = @
     objectsMap = {}
     DANTEUris = []
@@ -50,7 +49,7 @@ class DANTEUpdate
     # unique dante-uris
     DANTEUris = DANTEUris.filter((x, i, a) => a.indexOf(x) == i)
 
-    #console.error "DANTEUris", DANTEUris
+    console.error "DANTEUris.length", DANTEUris.length
 
     objectsToUpdate = []
 
@@ -63,7 +62,7 @@ class DANTEUpdate
         uri = items[0]
         originalDANTEUri = uri
         uri = 'https://api.dante.gbv.de/data?cache=1&uri='  + CUI.encodeURIComponentNicely(uri) + '&properties=+ancestors,altLabel,hiddenLabel,notation,scopeNote,definition,identifier,example,startDate,endDate,startPlace,endPlace'
-        #console.error "DANTE: ask for " + uri
+        console.error "DANTE: ask for " + uri
         deferred = new CUI.Deferred()
         extendedInfo_xhr = new (CUI.XHR)(url: uri)
         extendedInfo_xhr.start()
@@ -84,12 +83,10 @@ class DANTEUpdate
 
                 # conceptUri
                 updatedDANTEcdata.conceptURI = data.uri
-                #console.error "DANTE: now parsing " + data.uri
 
                 # conceptAncestors
                 updatedDANTEcdata.conceptAncestors = ''
                 if data?.ancestors.length > 0
-                  #console.error "DANTE: data?.ancestors.length" + data?.ancestors.length
                   conceptAncestors = []
                   for ancestor in data.ancestors
                     conceptAncestors.push ancestor.uri
@@ -100,7 +97,6 @@ class DANTEUpdate
                     conceptAncestorsString = conceptAncestors.join(' ')
                     # to result
                     updatedDANTEcdata.conceptAncestors = conceptAncestorsString
-                #console.error "DANTE: conceptAncestors is " + updatedDANTEcdata.conceptAncestors
 
                 # conceptName
                 # change only, if a frontendLanguage is set AND it is not a manually chosen label
@@ -166,10 +162,43 @@ class DANTEUpdate
 
                 # aggregate in objectsMap
                 if not that.__hasChanges(objectsMap[originalDANTEUri][objectsMapKey].data, updatedDANTEcdata)
-                  #console.error "DANTE: no changes!"
                   continue
                 else
-                  #console.error "DANTE: has changes!"
+                  objectsMap[originalDANTEUri][objectsMapKey].data = updatedDANTEcdata
+                  objectsToUpdate.push(objectsMap[originalDANTEUri][objectsMapKey])
+          else
+            if data?.length == 0
+              console.error "DANTE: URI has no target!!!"
+              # if data = [], than URI does not exist any more or ir not reachable
+              # update "conceptAncestors" to new type, if necessary
+              # parse every record of this URI
+              for cdataFromObjectsMap, objectsMapKey in objectsMap[originalDANTEUri]
+                cdataFromObjectsMap = cdataFromObjectsMap.data
+                hasSurelyChanges = false
+                # init updated cdata
+                updatedDANTEcdata = cdataFromObjectsMap
+
+                console.error "updatedDANTEcdata", updatedDANTEcdata
+                console.error "DANTE: now parsing " + updatedDANTEcdata.conceptURI
+
+                # conceptAncestors
+                if updatedDANTEcdata?.conceptAncestors
+                  if Array.isArray updatedDANTEcdata.conceptAncestors
+                    updatedDANTEcdata.conceptAncestors = updatedDANTEcdata.conceptAncestors.join(' ')
+                    hasSurelyChanges = true
+                else
+                  updatedDANTEcdata.conceptAncestors = ''
+                  hasSurelyChanges = true
+
+                console.error "DANTE: conceptAncestors is now " + updatedDANTEcdata.conceptAncestors
+                console.error "hasSurelyChanges", hasSurelyChanges
+
+                # aggregate in objectsMap
+                if not that.__hasChanges(objectsMap[originalDANTEUri][objectsMapKey].data, updatedDANTEcdata) && !hasSurelyChanges
+                  console.error "DANTE: no changes!"
+                  continue
+                else
+                  console.error "DANTE: has changes!"
                   objectsMap[originalDANTEUri][objectsMapKey].data = updatedDANTEcdata
                   objectsToUpdate.push(objectsMap[originalDANTEUri][objectsMapKey])
           deferred.resolve()
@@ -180,6 +209,7 @@ class DANTEUpdate
     )
 
     chunkWorkPromise.done(=>
+     console.error "now return " + objectsToUpdate.length + " objectsToUpdate"
      ez5.respondSuccess({payload: objectsToUpdate})
     ).fail(=>
      ez5.respondError("custom.data.type.dante.update.error.generic", {error: "Error connecting to DANTE"})
