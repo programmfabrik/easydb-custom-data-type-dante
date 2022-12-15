@@ -105,13 +105,15 @@ class DANTE_ListViewTree
         dfr = new CUI.Deferred()
 
         that = @
-        topTree_xhr = { "xhr" : undefined }
+        searchTree_xhr = { "xhr" : undefined }
 
         # start new request to DANTE-API
-
         url = location.protocol + '//api.dante.gbv.de/search?voc=' + vocName + '&query=' + searchTerm + '&format=json&limit=100&cache=' + cache + '&properties=+ancestors,notation&offset=0'
-        topTree_xhr.xhr = new (CUI.XHR)(url: url)
-        topTree_xhr.xhr.start().done((data, status, statusText) ->
+        searchTree_xhr.xhr = new (CUI.XHR)(url: url)
+        searchTree_xhr.xhr.start().done((data, status, statusText) ->
+
+          # remove all existing rows
+          that.treeview.removeAllRows()
 
           # parse search result and build virtual tree from result
           virtualTree = []
@@ -242,8 +244,6 @@ class DANTE_ListViewTree
                 editor_layout: that.editor_layout
 
             that.treeview.addNode(newNode)
-          # remove loading  row
-          that.treeview.removeRow(0)
 
           dfr.resolve()
           dfr.promise()

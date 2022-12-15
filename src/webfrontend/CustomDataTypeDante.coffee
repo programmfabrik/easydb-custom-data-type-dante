@@ -827,31 +827,31 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
   #######################################################################
   # build treeview-Layout with treeview
-  buildAndSetTreeviewLayout: (popover, layout, cdata, cdata_form, that, topMethod = 0, returnDfr = false, opts) ->
+  buildAndSetTreeviewLayout: (popover, layout, cdata, cdata_form, that, returnDfr = false, opts) ->
     # is this a call from expert-search? --> save in opts..
     if @?.callFromExpertSearch
       opts.callFromExpertSearch = @.callFromExpertSearch
     else
       opts.callFromExpertSearch = false
 
-    if topMethod
-      # get vocparameter from dropdown, if available...
-      popoverVocabularySelectTest = cdata_form.getFieldsByName("dante_PopoverVocabularySelect")[0]
-      if popoverVocabularySelectTest?.getValue()
-        vocParameter = popoverVocabularySelectTest?.getValue()
-      else
-        # else get first voc from given voclist (1-n)
-        vocParameter = that.getActiveVocabularyName(cdata)
-        vocParameter = vocParameter.split('|')
-        vocParameter = vocParameter[0]
+    # get vocparameter from dropdown, if available...
+    popoverVocabularySelectTest = cdata_form.getFieldsByName("dante_PopoverVocabularySelect")[0]
+    if popoverVocabularySelectTest?.getValue()
+      vocParameter = popoverVocabularySelectTest?.getValue()
+    else
+      # else get first voc from given voclist (1-n)
+      vocParameter = that.getActiveVocabularyName(cdata)
+      vocParameter = vocParameter.split('|')
+      vocParameter = vocParameter[0]
 
-      treeview = new DANTE_ListViewTree(popover, layout, cdata, cdata_form, that, opts, vocParameter)
+    treeview = new DANTE_ListViewTree(popover, layout, cdata, cdata_form, that, opts, vocParameter)
 
-      # maybe deferred is wanted?
-      if returnDfr == false
-        treeview.getTopTreeView(vocParameter, 1)
-      else
-        treeviewDfr = treeview.getTopTreeView(vocParameter, 1)
+    # maybe deferred is wanted?
+    if returnDfr == false
+      treeview.getTopTreeView(vocParameter, 1)
+    else
+      treeviewDfr = treeview.getTopTreeView(vocParameter, 1)
+
 
     treeviewPane = new CUI.Pane
         class: "cui-pane dante_treeviewPane"
@@ -918,7 +918,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
         that.__updateResult(cdata, layout, opts)
         # update tree, if voc changed
         if elem.opts.name == 'dante_PopoverVocabularySelect' && that.renderPopupAsTreeview()
-          @buildAndSetTreeviewLayout(@popover, layout, cdata, cdata_form, that, 1, false, opts)
+          @buildAndSetTreeviewLayout(@popover, layout, cdata, cdata_form, that, false, opts)
         that.__setEditorFieldStatus(cdata, layout)
         if elem.opts.name == 'searchbarInput' || elem.opts.name == 'dante_PopoverVocabularySelect'
           that.__updateSuggestionsMenu(cdata, cdata_form, data.searchbarInput, elem, suggest_Menu, searchsuggest_xhr, layout, opts)
@@ -932,7 +932,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
     # treeview?
     if that.renderPopupAsTreeview()
       # do search-request for all the top-entrys of vocabulary
-      @buildAndSetTreeviewLayout(@popover, layout, cdata, cdata_form, that, 1, false, opts)
+      @buildAndSetTreeviewLayout(@popover, layout, cdata, cdata_form, that, false, opts)
 
       # cache on?
       cache = 0
@@ -956,10 +956,8 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
 
                           button.setIcon(new CUI.Icon(class: "fa-spinner fa-spin"))
 
-                          newTreeview = @buildAndSetTreeviewLayout(@popover, layout, cdata, cdata_form, that, 0, false, opts)
-
+                          newTreeview = @buildAndSetTreeviewLayout(@popover, layout, cdata, cdata_form, that, false, opts)
                           vocParameter = that.getActiveVocabularyName(cdata)
-
                           newTreeview.getSearchResultTree(searchTerm, vocParameter, cache)
                           .done =>
                             # enable search + reset-buttons
@@ -1006,7 +1004,7 @@ class CustomDataTypeDANTE extends CustomDataTypeWithCommons
                         button.setIcon(new CUI.Icon(class: "fa-spinner fa-spin"))
 
                         # attach info to cdata_form
-                        newTreeviewDfr = @buildAndSetTreeviewLayout(@popover, layout, cdata, cdata_form, that, 1, true, opts)
+                        newTreeviewDfr = @buildAndSetTreeviewLayout(@popover, layout, cdata, cdata_form, that, true, opts)
 
                         # if reset complete
                         newTreeviewDfr.done =>
