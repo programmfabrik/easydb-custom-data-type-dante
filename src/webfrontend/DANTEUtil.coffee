@@ -15,7 +15,7 @@ class ez5.DANTEUtil
 
   @getFullTextFromJSKOSObject: (object, databaseLanguages = false) ->
     if databaseLanguages == false
-      databaseLanguages = ez5.loca.getLanguageControl().getLanguages()
+      databaseLanguages = ez5.loca.getLanguageControl().getLanguages().slice()
 
     shortenedDatabaseLanguages = databaseLanguages.map((value, key, array) ->
       value.split('-').shift()
@@ -123,7 +123,7 @@ class ez5.DANTEUtil
   @getStandardFromJSKOSObject: (JSKOS, databaseLanguages = false) ->
 
     if databaseLanguages == false
-      databaseLanguages = ez5.loca.getLanguageControl().getLanguages()
+      databaseLanguages = ez5.loca.getLanguageControl().getLanguages().slice()
 
     shortenedDatabaseLanguages = databaseLanguages.map((value, key, array) ->
       value.split('-').shift()
@@ -182,7 +182,7 @@ class ez5.DANTEUtil
   @getFacetTermFromJSKOSObject: (JSKOS) ->
     console.log "f:getFacetTermFromJSKOSObject"
 
-    databaseLanguages = ez5.loca.getLanguageControl().getLanguages()
+    databaseLanguages = ez5.loca.getLanguageControl().getLanguages().slice()
 
     shortenedDatabaseLanguages = databaseLanguages.map((value, key, array) ->
       value.split('-').shift()
@@ -237,8 +237,5 @@ class ez5.DANTEUtil
 
     # if l10n-object is not empty
     _facet_term = l10nObject
-
-    #_facet_term = JSON.stringify(_facet_term)
-    console.log "_facet_term", _facet_term
 
     return _facet_term
