@@ -17,8 +17,6 @@ class CustomDataTypeDANTEFacet extends FieldFacet
       data[key]?.terms or []
 
   renderObjectText: (object) ->
-      console.log object
-      console.log object.term
       parts = object.term.split('@$@')
       label = '---'
       if parts.length == 2

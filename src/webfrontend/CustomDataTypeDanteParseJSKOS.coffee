@@ -239,7 +239,7 @@ CustomDataTypeDANTE.prototype.getPrefLabelFromJSKOS = (jskos) ->
     desiredLanguage = desiredLanguage.split('-')
     desiredLanguage = desiredLanguage[0]
 
-    frontendLanguages = ez5.session.getConfigFrontendLanguages()
+    frontendLanguages = ez5.session.getConfigFrontendLanguages().slice()
     for key, value of frontendLanguages
       tmp = value.split('-')
       tmp = tmp[0]
